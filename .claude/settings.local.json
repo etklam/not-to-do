@@ -7,7 +7,12 @@
       "Bash(head:*)",
       "Bash(npm run:*)",
       "Bash(sleep 5:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(wc:*)",
+      "Bash(docker build:*)",
+      "Bash(npm install:*)",
+      "Bash(docker rm:*)",
+      "Bash(sleep 2 && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000 2>&1)"
     ]
   }
 }

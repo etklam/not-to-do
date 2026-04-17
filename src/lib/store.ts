@@ -9,12 +9,13 @@ import type {
   DailyResistLog,
 } from './types'
 import { getTodayDateString, getYesterdayDateString } from './utils'
+import { LEGACY_TRIGGER_MAP } from './insights'
 
 const ITEMS_KEY = 'ntd_items'
 const CHECKINS_KEY = 'ntd_checkins'
 const RESISTS_KEY = 'ntd_daily_resists'
 const SCHEMA_VERSION_KEY = 'ntd_schema_version'
-const CURRENT_SCHEMA_VERSION = 4
+const CURRENT_SCHEMA_VERSION = 5
 
 interface LegacyItem {
   id: string
@@ -100,6 +101,10 @@ function migrateItems(items: LegacyItem[]): NotToDoItem[] {
   }))
 }
 
+function migrateTriggerTags(tags: string[]): string[] {
+  return tags.map((tag) => LEGACY_TRIGGER_MAP[tag] ?? tag)
+}
+
 function migrateCheckins(checkins: LegacyCheckin[]): Checkin[] {
   return checkins.map((c) => ({
     id: c.id,
@@ -108,7 +113,7 @@ function migrateCheckins(checkins: LegacyCheckin[]): Checkin[] {
     status: c.status,
     resistCount: c.resistCount ?? (c.status === 'resisted' ? 1 : 0),
     temptationLevel: c.temptationLevel ?? null,
-    triggerTags: c.triggerTags ?? [],
+    triggerTags: migrateTriggerTags(c.triggerTags ?? []),
     note: c.note ?? '',
     createdAt: c.createdAt,
   }))

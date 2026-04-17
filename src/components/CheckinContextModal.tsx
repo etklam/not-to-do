@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { TEMPTATION_OPTIONS, TRIGGER_OPTIONS } from '@/lib/insights'
+import { useTranslations } from 'next-intl'
+import { TRIGGER_KEYS } from '@/lib/insights'
 import type { CheckinInput, CheckinStatus, TemptationLevel } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +19,8 @@ export default function CheckinContextModal({
   onClose,
   onSubmit,
 }: CheckinContextModalProps) {
+  const t = useTranslations('modal')
+  const tTriggers = useTranslations('triggers')
   const [temptationLevel, setTemptationLevel] = useState<TemptationLevel | null>(null)
   const [triggerTags, setTriggerTags] = useState<string[]>([])
   const [note, setNote] = useState('')
@@ -53,6 +56,12 @@ export default function CheckinContextModal({
     })
   }
 
+  const temptationOptions: Array<{ value: TemptationLevel; labelKey: string; hintKey: string }> = [
+    { value: 'none', labelKey: 'temptNone', hintKey: 'temptNoneHint' },
+    { value: 'some', labelKey: 'temptSome', hintKey: 'temptSomeHint' },
+    { value: 'many', labelKey: 'temptMany', hintKey: 'temptManyHint' },
+  ]
+
   return (
     <div className="fixed inset-0 z-[110] flex items-end justify-center p-3 sm:items-center sm:p-6">
       <div className="absolute inset-0 bg-kawaii-text/30 backdrop-blur-sm" onClick={onClose} />
@@ -61,10 +70,10 @@ export default function CheckinContextModal({
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-kawaii-text-light">
-              {isResisted ? 'Day +1 補充' : '破戒補充'}
+              {isResisted ? t('resistHeader') : t('failHeader')}
             </p>
             <h3 className="mt-1 text-xl font-extrabold text-kawaii-text">
-              {isResisted ? '昨天有多想破戒？' : '今天主要是被什麼拉走？'}
+              {isResisted ? t('resistQuestion') : t('failQuestion')}
             </h3>
           </div>
 
@@ -72,13 +81,13 @@ export default function CheckinContextModal({
             onClick={onClose}
             className="rounded-full bg-kawaii-cream px-3 py-1 text-sm font-bold text-kawaii-text-light"
           >
-            關閉
+            {t('close')}
           </button>
         </div>
 
         {isResisted && (
           <div className="mb-5 space-y-2">
-            {TEMPTATION_OPTIONS.map((option) => (
+            {temptationOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setTemptationLevel(option.value)}
@@ -89,8 +98,8 @@ export default function CheckinContextModal({
                     : 'border-kawaii-purple-light/30 bg-kawaii-cream hover:border-kawaii-pink-light hover:bg-white'
                 )}
               >
-                <div className="font-bold text-kawaii-text">{option.label}</div>
-                <div className="mt-1 text-xs text-kawaii-text-light">{option.hint}</div>
+                <div className="font-bold text-kawaii-text">{t(option.labelKey)}</div>
+                <div className="mt-1 text-xs text-kawaii-text-light">{t(option.hintKey)}</div>
               </button>
             ))}
           </div>
@@ -98,19 +107,19 @@ export default function CheckinContextModal({
 
         <div className="mb-5">
           <div className="mb-2 text-sm font-bold text-kawaii-text">
-            {isResisted ? '昨天的誘因是什麼？' : '至少選一個今天的主要誘因'}
+            {isResisted ? t('triggerLabel') : t('triggerLabelFail')}
             <span className="ml-1 font-normal text-kawaii-text-light">
-              {isResisted ? '（選填）' : '（必填）'}
+              {isResisted ? t('triggerOptional') : t('triggerRequired')}
             </span>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {TRIGGER_OPTIONS.map((tag) => {
-              const active = triggerTags.includes(tag)
+            {TRIGGER_KEYS.map((key) => {
+              const active = triggerTags.includes(key)
               return (
                 <button
-                  key={tag}
-                  onClick={() => toggleTriggerTag(tag)}
+                  key={key}
+                  onClick={() => toggleTriggerTag(key)}
                   className={cn(
                     'rounded-pill px-3 py-2 text-sm font-semibold transition-all duration-200',
                     active
@@ -120,7 +129,7 @@ export default function CheckinContextModal({
                       : 'bg-kawaii-cream text-kawaii-text hover:bg-white'
                   )}
                 >
-                  {tag}
+                  {tTriggers(key)}
                 </button>
               )
             })}
@@ -130,29 +139,27 @@ export default function CheckinContextModal({
         {!isResisted && (
           <div className="mb-5">
             <label className="mb-2 block text-sm font-bold text-kawaii-text">
-              補充一句
-              <span className="ml-1 font-normal text-kawaii-text-light">（選填）</span>
+              {t('noteLabel')}
+              <span className="ml-1 font-normal text-kawaii-text-light">{t('noteOptional')}</span>
             </label>
             <textarea
               value={note}
               onChange={(event) => setNote(event.target.value)}
               rows={3}
               maxLength={140}
-              placeholder="例如：晚上壓力很大，就直接滑下去了"
+              placeholder={t('notePlaceholder')}
               className="w-full resize-none rounded-[20px] border-2 border-kawaii-purple-light/30 bg-kawaii-cream px-4 py-3 text-kawaii-text outline-none transition-all focus:border-kawaii-pink-light focus:bg-white"
             />
           </div>
         )}
 
         <p className="mb-4 text-xs font-medium text-kawaii-text-light">
-          {isResisted
-            ? 'Day +1 只會記一次昨天；今天的破戒與忍住仍可另外記錄。'
-            : '今天的破戒只會記一次，但今天的忍住次數仍可繼續累積。'}
+          {isResisted ? t('helpResist') : t('helpFail')}
         </p>
 
         <div className="flex gap-3">
           <button onClick={onClose} className="btn-kawaii-secondary flex-1">
-            先取消
+            {t('cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -163,7 +170,7 @@ export default function CheckinContextModal({
               !canSubmit && 'cursor-not-allowed opacity-40 hover:translate-y-0 hover:shadow-none'
             )}
           >
-            {isResisted ? '記錄 Day +1' : '記錄這次破戒'}
+            {isResisted ? t('submitResist') : t('submitFail')}
           </button>
         </div>
       </div>

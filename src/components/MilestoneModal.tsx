@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import confetti from 'canvas-confetti'
-import { milestoneMessages } from '@/lib/messages'
+import { getMilestoneKey } from '@/lib/messages'
 import { formatDayLabel } from '@/lib/utils'
 
 interface MilestoneModalProps {
@@ -11,6 +12,8 @@ interface MilestoneModalProps {
 }
 
 export default function MilestoneModal({ streak, onClose }: MilestoneModalProps) {
+  const t = useTranslations('milestone')
+
   const fireConfetti = useCallback(() => {
     const colors = ['#FF6B9D', '#C084FC', '#6EE7B7', '#FDE68A', '#FFB8D0']
 
@@ -45,7 +48,10 @@ export default function MilestoneModal({ streak, onClose }: MilestoneModalProps)
     fireConfetti()
   }, [fireConfetti])
 
-  const message = milestoneMessages[streak] || `🎉 已來到 ${formatDayLabel(streak)}！`
+  const milestoneKey = getMilestoneKey(streak)
+  const message = milestoneKey === 'default'
+    ? t('default', { day: formatDayLabel(streak) })
+    : t(milestoneKey)
 
   return (
     <div
@@ -59,13 +65,13 @@ export default function MilestoneModal({ streak, onClose }: MilestoneModalProps)
       >
         <div className="text-6xl mb-4 animate-float">🎉</div>
         <h2 className="text-2xl font-extrabold text-kawaii-text mb-2">
-          里程碑達成！
+          {t('title')}
         </h2>
         <p className="text-lg text-kawaii-text-light leading-relaxed mb-6">
           {message}
         </p>
         <button onClick={onClose} className="btn-kawaii-primary w-full">
-          太棒了！繼續加油 ✨
+          {t('close')}
         </button>
       </div>
     </div>

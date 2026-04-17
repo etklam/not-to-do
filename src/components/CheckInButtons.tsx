@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import CheckinContextModal from './CheckinContextModal'
 import type { CheckinInput, CheckinStatus } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -22,6 +23,7 @@ export default function CheckInButtons({
   onCheckin,
   onResist,
 }: CheckInButtonsProps) {
+  const t = useTranslations('checkin')
   const [animating, setAnimating] = useState<CheckinStatus | null>(null)
   const [draftStatus, setDraftStatus] = useState<CheckinStatus | null>(null)
   const [resistAnimating, setResistAnimating] = useState(false)
@@ -51,6 +53,9 @@ export default function CheckInButtons({
 
   const handleResist = useCallback(() => {
     setResistAnimating(true)
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50)
+    }
     onResist(notToDoId)
     setTimeout(() => setResistAnimating(false), 300)
   }, [notToDoId, onResist])
@@ -75,10 +80,10 @@ export default function CheckInButtons({
             )}
           >
             {yesterdayStatus === 'resisted'
-              ? '✓ 昨天已打卡'
+              ? t('yesterdayDone')
               : yesterdayStatus === 'failed'
-              ? '✓ 昨天已記破戒'
-              : 'Day +1'}
+              ? t('yesterdayFailed')
+              : t('dayPlus')}
           </button>
 
           <button
@@ -94,7 +99,7 @@ export default function CheckInButtons({
               animating === 'failed' && 'animate-shake-soft'
             )}
           >
-            {todayStatus === 'failed' ? '✓ 今天已記破戒' : '破戒，重置 Day'}
+            {todayStatus === 'failed' ? t('todayFailed') : t('failReset')}
           </button>
         </div>
 
@@ -107,20 +112,20 @@ export default function CheckInButtons({
             resistAnimating && 'animate-bounce-soft'
           )}
         >
-          忍住 +1
-          {todayResistCount > 0 && ` ・ 今日 ${todayResistCount} 次`}
+          {t('resistPlus')}
+          {todayResistCount > 0 && ` ・ ${t('resistCount', { count: todayResistCount })}`}
         </button>
 
         <p className="text-xs font-medium text-kawaii-text-light">
           {successCheckedIn && failedToday
-            ? '昨天已打卡成功，但今天已破戒重置。'
+            ? t('helpBothDone')
             : successCheckedIn
-            ? 'Day +1 是統計昨天成功，所以今天仍然可以破戒重置。'
+            ? t('helpSuccessDone')
             : yesterdayFailed
-            ? '昨天已記過破戒；今天仍然可以累積忍住次數。'
+            ? t('helpYesterdayFailed')
             : todayStatus === 'failed'
-            ? '今天已記錄破戒；昨天若還沒打卡，之後仍應分開處理。'
-            : 'Day +1 統計昨天，破戒與忍住統計今天。'}
+            ? t('helpTodayFailed')
+            : t('helpDefault')}
         </p>
       </div>
 

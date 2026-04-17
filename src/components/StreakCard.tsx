@@ -1,8 +1,9 @@
 'use client'
 
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import type { NotToDoItem, Checkin, CheckinInput } from '@/lib/types'
-import { getCheckinStatusSummary } from '@/lib/insights'
+import { getCheckinStatusResult } from '@/lib/insights'
 import { cn, formatDayLabel } from '@/lib/utils'
 import CheckInButtons from './CheckInButtons'
 
@@ -46,7 +47,13 @@ export default function StreakCard({
   onResist,
   index,
 }: StreakCardProps) {
-  const statusSummary = getCheckinStatusSummary(yesterdayCheckin, todayCheckin)
+  const t = useTranslations('items')
+  const tInsights = useTranslations('insights')
+  const tDetail = useTranslations('detail')
+  const statusResult = getCheckinStatusResult(yesterdayCheckin, todayCheckin)
+  const statusSummary = statusResult
+    ? tInsights(statusResult.key, statusResult.params)
+    : null
 
   return (
     <div
@@ -72,12 +79,12 @@ export default function StreakCard({
           <span className="text-2xl animate-float" style={{ animationDelay: `${index * 200}ms` }}>
             {getStreakEmoji(item.streak)}
           </span>
-          <div className="mt-1 text-lg font-extrabold text-kawaii-text">
+          <div className="mt-1 text-lg font-extrabold text-kawaii-text transition-all duration-300">
             {formatDayLabel(item.streak)}
           </div>
           {item.bestStreak > item.streak && (
             <span className="text-[10px] text-kawaii-purple font-semibold">
-              最佳 {formatDayLabel(item.bestStreak)}
+              {t('bestDay', { day: formatDayLabel(item.bestStreak) })}
             </span>
           )}
         </div>
@@ -96,7 +103,7 @@ export default function StreakCard({
 
       {todayResistCount > 0 && (
         <p className="mb-2 text-xs font-semibold text-kawaii-purple">
-          今日忍住 {todayResistCount} 次
+          {tDetail('todayResist', { count: todayResistCount })}
         </p>
       )}
 

@@ -1,22 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link, useRouter } from '@/i18n/navigation'
 import { useItems } from '@/lib/store'
 
-const SUGGESTIONS = [
-  { emoji: '📱', text: '睡前滑手機' },
-  { emoji: '🍟', text: '吃垃圾食物' },
-  { emoji: '☕', text: '下午喝含糖飲料' },
-  { emoji: '📺', text: '追劇追到半夜' },
-  { emoji: '🛒', text: '衝動購物' },
-  { emoji: '😴', text: '賴床超過 10 分鐘' },
-  { emoji: '🎮', text: '工作時間打遊戲' },
-  { emoji: '💭', text: '過度焦慮未來的事' },
-]
+const SUGGESTION_KEYS = [
+  { emoji: '📱', key: 'suggestion1' },
+  { emoji: '🍟', key: 'suggestion2' },
+  { emoji: '☕', key: 'suggestion3' },
+  { emoji: '📺', key: 'suggestion4' },
+  { emoji: '🛒', key: 'suggestion5' },
+  { emoji: '😴', key: 'suggestion6' },
+  { emoji: '🎮', key: 'suggestion7' },
+  { emoji: '💭', key: 'suggestion8' },
+] as const
 
 export default function NewItemPage() {
+  const t = useTranslations('newItem')
   const router = useRouter()
   const { addItem } = useItems()
   const [title, setTitle] = useState('')
@@ -44,7 +45,7 @@ export default function NewItemPage() {
           </svg>
         </Link>
         <h1 className="text-2xl font-extrabold text-kawaii-text">
-          新的不做事項 🚫
+          {t('title')}
         </h1>
       </div>
 
@@ -52,13 +53,13 @@ export default function NewItemPage() {
       <form onSubmit={handleSubmit} className="animate-slide-up">
         <div className="card-kawaii mb-4">
           <label className="block text-sm font-bold text-kawaii-text mb-2">
-            我要停止…
+            {t('labelTitle')}
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="例如：睡前滑手機"
+            placeholder={t('placeholderTitle')}
             maxLength={50}
             autoFocus
             className="w-full px-4 py-3 bg-kawaii-cream rounded-kawaii-sm border-2 border-transparent focus:border-kawaii-pink-light focus:bg-white outline-none transition-all text-kawaii-text placeholder:text-kawaii-text-light/50 font-semibold"
@@ -67,15 +68,15 @@ export default function NewItemPage() {
 
         <div className="card-kawaii mb-6">
           <label className="block text-sm font-bold text-kawaii-text mb-2">
-            為什麼想戒掉？
+            {t('labelDesc')}
             <span className="font-normal text-kawaii-text-light ml-1">
-              （選填）
+              {t('labelDescOptional')}
             </span>
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="寫下你的動機，提醒未來的自己…"
+            placeholder={t('placeholderDesc')}
             maxLength={200}
             rows={3}
             className="w-full px-4 py-3 bg-kawaii-cream rounded-kawaii-sm border-2 border-transparent focus:border-kawaii-purple-light focus:bg-white outline-none transition-all text-kawaii-text placeholder:text-kawaii-text-light/50 resize-none"
@@ -87,25 +88,28 @@ export default function NewItemPage() {
           disabled={!title.trim() || isSubmitting}
           className="btn-kawaii-primary w-full disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none"
         >
-          {isSubmitting ? '新增中…' : '開始抵抗 💪'}
+          {isSubmitting ? t('submitting') : t('submit')}
         </button>
       </form>
 
       {/* Suggestions */}
       <div className="mt-8">
         <h2 className="text-sm font-bold text-kawaii-text-light mb-3">
-          💡 或試試這些
+          {t('suggestions')}
         </h2>
         <div className="flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s.text}
-              onClick={() => setTitle(s.text)}
-              className="px-3 py-1.5 bg-white rounded-pill text-sm text-kawaii-text border border-kawaii-purple-light/30 hover:border-kawaii-pink-light hover:bg-kawaii-blush transition-all active:scale-95"
-            >
-              {s.emoji} {s.text}
-            </button>
-          ))}
+          {SUGGESTION_KEYS.map((s) => {
+            const text = t(s.key)
+            return (
+              <button
+                key={s.key}
+                onClick={() => setTitle(text)}
+                className="px-3 py-1.5 bg-white rounded-pill text-sm text-kawaii-text border border-kawaii-purple-light/30 hover:border-kawaii-pink-light hover:bg-kawaii-blush transition-all active:scale-95"
+              >
+                {s.emoji} {text}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

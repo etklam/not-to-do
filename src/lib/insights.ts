@@ -1,25 +1,43 @@
 import type { Checkin, TemptationLevel } from './types'
 
-export const TRIGGER_OPTIONS = [
-  '無聊',
-  '壓力',
-  '睡前',
-  '拖延',
-  '社群媒體',
-  '情緒低落',
-  '嘴饞',
-  '其他',
+// Stable keys for trigger options — stored in checkins
+export const TRIGGER_KEYS = [
+  'bored',
+  'stress',
+  'bedtime',
+  'procrastinate',
+  'socialMedia',
+  'lowMood',
+  'cravings',
+  'other',
 ] as const
 
-export const TEMPTATION_OPTIONS: Array<{
-  value: TemptationLevel
-  label: string
-  hint: string
-}> = [
-  { value: 'none', label: '沒有被誘惑', hint: '那一天意外地很穩' },
-  { value: 'some', label: '有想做，但忍住了', hint: '有動搖，但守住了' },
-  { value: 'many', label: '很多次都忍住了', hint: '那一天很硬，但你有撐住' },
-]
+export type TriggerKey = (typeof TRIGGER_KEYS)[number]
+
+// Map legacy Chinese trigger strings → stable keys (for migration)
+export const LEGACY_TRIGGER_MAP: Record<string, TriggerKey> = {
+  '無聊': 'bored',
+  '壓力': 'stress',
+  '睡前': 'bedtime',
+  '拖延': 'procrastinate',
+  '社群媒體': 'socialMedia',
+  '情緒低落': 'lowMood',
+  '嘴饞': 'cravings',
+  '其他': 'other',
+}
+
+// Temptation level values (already stable keys)
+export const TEMPTATION_KEYS: TemptationLevel[] = ['none', 'some', 'many']
+
+export interface ReflectionResult {
+  key: string
+  params?: Record<string, string | number>
+}
+
+export interface StatusResult {
+  key: string
+  params?: Record<string, string>
+}
 
 export interface CheckinInsightSummary {
   recentCount: number
@@ -28,8 +46,8 @@ export interface CheckinInsightSummary {
   temptationDays: number
   topTrigger: string | null
   topTriggers: string[]
-  riskWindow: string | null
-  reflection: string
+  riskWindow: string | null // key like 'riskDawn', 'riskMorning', etc.
+  reflection: ReflectionResult
 }
 
 function isPressureCheckin(checkin: Checkin): boolean {
@@ -50,13 +68,13 @@ function getRecentCheckins(checkins: Checkin[], recentDays: number): Checkin[] {
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 
-function getRiskWindowLabel(createdAt: string): string {
+function getRiskWindowKey(createdAt: string): string {
   const hour = new Date(createdAt).getHours()
 
-  if (hour >= 0 && hour < 5) return '凌晨'
-  if (hour < 12) return '上午'
-  if (hour < 18) return '下午'
-  return '晚上'
+  if (hour >= 0 && hour < 5) return 'riskDawn'
+  if (hour < 12) return 'riskMorning'
+  if (hour < 18) return 'riskAfternoon'
+  return 'riskEvening'
 }
 
 function getMostCommonValues(values: string[], limit = 3): string[] {
@@ -72,38 +90,38 @@ function getMostCommonValues(values: string[], limit = 3): string[] {
     .map(([value]) => value)
 }
 
-function getReflectionCopy(
+function getReflectionResult(
   recentCount: number,
   failedCount: number,
   temptationDays: number,
   topTrigger: string | null,
   riskWindow: string | null
-): string {
+): ReflectionResult {
   if (recentCount === 0) {
-    return '最近 7 天還沒有足夠資料，先完成今天這次記錄。'
+    return { key: 'reflectionEmpty' }
   }
 
   if (failedCount === 0 && temptationDays === 0) {
-    return '這週節奏很穩，還沒有看到明顯的誘惑尖峰。'
+    return { key: 'reflectionStable' }
   }
 
   if (failedCount === 0 && temptationDays > 0) {
-    return `這週有 ${temptationDays} 天出現誘惑，但你都撐住了。這不是運氣，是正在建立控制力。`
+    return { key: 'reflectionResistedAll', params: { days: temptationDays } }
   }
 
   if (topTrigger && riskWindow) {
-    return `最近最容易在${riskWindow}因為${topTrigger}動搖。先處理那個情境，比硬撐更有效。`
+    return { key: 'reflectionTriggerAndWindow', params: { trigger: topTrigger, window: riskWindow } }
   }
 
   if (topTrigger) {
-    return `最近最常見的誘因是${topTrigger}。先拆掉這個觸發點，成功率會明顯上來。`
+    return { key: 'reflectionTriggerOnly', params: { trigger: topTrigger } }
   }
 
   if (riskWindow) {
-    return `最近比較危險的時段是${riskWindow}。那一段先減少接觸誘惑來源。`
+    return { key: 'reflectionWindowOnly', params: { window: riskWindow } }
   }
 
-  return `最近 7 天有 ${failedCount} 次破戒。不是意志力爛，是模式還沒拆乾淨。`
+  return { key: 'reflectionGeneral', params: { count: failedCount } }
 }
 
 export function getCheckinInsightSummary(
@@ -123,7 +141,7 @@ export function getCheckinInsightSummary(
   )
   const pressureCheckins = recentCheckins.filter(isPressureCheckin)
   const riskWindows = getMostCommonValues(
-    pressureCheckins.map((checkin) => getRiskWindowLabel(checkin.createdAt)),
+    pressureCheckins.map((checkin) => getRiskWindowKey(checkin.createdAt)),
     1
   )
   const riskWindow =
@@ -138,7 +156,7 @@ export function getCheckinInsightSummary(
     topTrigger,
     topTriggers,
     riskWindow,
-    reflection: getReflectionCopy(
+    reflection: getReflectionResult(
       recentCheckins.length,
       failedCount,
       temptationDates.size,
@@ -148,31 +166,31 @@ export function getCheckinInsightSummary(
   }
 }
 
-export function getCheckinStatusSummary(
+export function getCheckinStatusResult(
   yesterdayCheckin: Checkin | null,
   todayCheckin: Checkin | null
-): string | null {
+): StatusResult | null {
   if (todayCheckin?.status === 'failed') {
     if (todayCheckin.triggerTags.length > 0) {
-      return `今天因 ${todayCheckin.triggerTags[0]} 破戒`
+      return { key: 'statusTodayFailedTrigger', params: { trigger: todayCheckin.triggerTags[0] } }
     }
 
-    return '今天已記錄破戒'
+    return { key: 'statusTodayFailed' }
   }
 
   if (!yesterdayCheckin) return null
 
   if (yesterdayCheckin.status === 'failed') {
-    return '昨天已記錄破戒'
+    return { key: 'statusYesterdayFailed' }
   }
 
   if (yesterdayCheckin.temptationLevel === 'many') {
-    return '昨天很多次想破戒，但你都撐住了'
+    return { key: 'statusTemptMany' }
   }
 
   if (yesterdayCheckin.temptationLevel === 'some') {
-    return '昨天有被誘惑，但你撐住了'
+    return { key: 'statusTemptSome' }
   }
 
-  return '昨天已完成打卡'
+  return { key: 'statusCheckedIn' }
 }

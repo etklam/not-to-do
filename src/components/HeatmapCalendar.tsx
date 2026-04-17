@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import type { Checkin } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +16,9 @@ interface DayCell {
 }
 
 export default function HeatmapCalendar({ checkins }: HeatmapCalendarProps) {
+  const t = useTranslations('heatmap')
+  const locale = useLocale()
+
   const { weeks, monthLabel } = useMemo(() => {
     const today = new Date()
     const checkinMap = new Map<string, 'resisted' | 'failed'>()
@@ -56,27 +60,27 @@ export default function HeatmapCalendar({ checkins }: HeatmapCalendarProps) {
       weekGroups.push(days.slice(i, i + 7))
     }
 
-    const label = today.toLocaleDateString('zh-TW', {
+    const label = today.toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-HK', {
       year: 'numeric',
       month: 'long',
     })
 
     return { weeks: weekGroups, monthLabel: label }
-  }, [checkins])
+  }, [checkins, locale])
 
-  const dayLabels = ['一', '二', '三', '四', '五', '六', '日']
+  const dayLabels: string[] = t.raw('days')
 
   return (
     <div className="card-kawaii">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-kawaii-text">打卡紀錄</h3>
+        <h3 className="font-bold text-kawaii-text">{t('title')}</h3>
         <span className="text-sm text-kawaii-text-light">{monthLabel}</span>
       </div>
 
       <div className="flex gap-1">
         {/* Day labels */}
         <div className="flex flex-col gap-1 mr-1">
-          {dayLabels.map((label) => (
+          {dayLabels.map((label: string) => (
             <div
               key={label}
               className="w-4 h-4 flex items-center justify-center text-[9px] text-kawaii-text-light"
@@ -108,10 +112,10 @@ export default function HeatmapCalendar({ checkins }: HeatmapCalendarProps) {
                       ? ''
                       : `${day.date}: ${
                           day.status === 'resisted'
-                            ? '已打卡 ✓'
+                            ? t('checkedIn')
                             : day.status === 'failed'
-                            ? '破戒了 ✗'
-                            : '未打卡'
+                            ? t('failed')
+                            : t('noCheckin')
                         }`
                   }
                 />
@@ -125,15 +129,15 @@ export default function HeatmapCalendar({ checkins }: HeatmapCalendarProps) {
       <div className="flex items-center gap-4 mt-4 text-xs text-kawaii-text-light">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-[3px] bg-kawaii-mint" />
-          已打卡
+          {t('legendSuccess')}
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-[3px] bg-kawaii-danger" />
-          破戒了
+          {t('legendFailed')}
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-[3px] bg-kawaii-purple-light/30" />
-          未打卡
+          {t('legendNone')}
         </div>
       </div>
     </div>
