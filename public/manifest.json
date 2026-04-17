@@ -1,0 +1,22 @@
+{
+  "name": "Not-To-Do 不做清單",
+  "short_name": "Not-To-Do",
+  "description": "追蹤你不想做的事，每天抵抗就是勝利",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF5",
+  "theme_color": "#FFFBF5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

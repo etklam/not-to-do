@@ -1,96 +1,165 @@
-# Design System Document
+# Not-To-Do Design
 
-## 1. Overview & Creative North Star
-**The Creative North Star: "Obsidian Precision"**
+Updated: 2026-04-17
+Status: Current V1 recorded
+Branch: `main`
 
-This design system is built for an uncompromising dark-mode experience. We are moving away from the "cluttered dashboard" trope of habit trackers and toward an editorial, high-performance interface. The goal is to create a space of deep focus where the user’s "Not-To-Do" list feels like a sacred contract. 
+## Product
 
-We break the "template" look through **Obsidian Precision**: a philosophy that utilizes extreme tonal shifts, expansive negative space, and aggressive typographic scales. By removing traditional borders and lines, we treat the UI as a single, fluid block of dark stone, where information is carved out through light and depth rather than partitioned by boxes.
+Not-To-Do is a local-first anti-habit tracker.
 
----
+Each item is something the user wants to stop doing. `Day +1` is a next-day confirmation that yesterday was successful. A failure resets the item to `Day 0` immediately on the day it happens. The current shipped version is intentionally single-player and browser-local.
 
-## 2. Colors & Surface Architecture
+All streak copy uses zero-based labels: `Day 0`, `Day 1`, `Day n`.
 
-### The Palette
-We use a monochromatic obsidian base to allow the **Electric Violet** primary accent to command immediate attention.
+## Current Version Snapshot
 
-- **Background & Surface:** `#0e0e0e` (Surface / Surface-Dim)
-- **Primary Accent:** `primary` (#bd9dff) to `primary_dim` (#8a4cfc)
-- **Success/Neutral:** `secondary` (#c38bf5)
-- **The "Fail" State:** `error` (#ff6e84)
+- Runtime: single-user, client-side only
+- Persistence: `localStorage`
+- Routes: `/`, `/items`, `/items/new`, `/items/[id]`
+- Check-in model: `Day +1` 統計昨天成功，`忍住 +1` 統計今天且可同日累積，`破戒，重置 Day` 統計今天
+- Repeat protection: each item can only record one result for yesterday and one failure for today, while `忍住 +1` can accumulate on the current day
+- Installability: manifest exists, full service worker flow does not
+- Product shape: insight-aware daily streak tracker, not yet a social challenge app
 
-### The "No-Line" Rule
-**Explicit Instruction:** Designers are prohibited from using 1px solid borders to section content. Boundaries must be defined solely through background color shifts or tonal transitions. 
-- Use `surface_container_low` for secondary sections sitting on a `surface` background.
-- Use `surface_container_highest` for interactive elements that need to "pop" from the base.
+## Implemented Features
 
-### Surface Hierarchy & Nesting
-Treat the UI as a series of physical layers.
-- **Level 0 (Base):** `surface` (#0e0e0e) for the main app background.
-- **Level 1 (Sections):** `surface_container_low` (#131313) for grouping content.
-- **Level 2 (Cards/Interactions):** `surface_container_high` (#201f1f) for actionable items.
+### Dashboard
 
-### The "Glass & Gradient" Rule
-To elevate the "Electric Violet" accent, do not use flat fills for large areas. Apply a subtle linear gradient from `primary` to `primary_container`. For floating overlays (e.g., a "Check-in" modal), use **Glassmorphism**: apply `surface_container_highest` at 70% opacity with a `20px` backdrop-blur to create a sense of environmental integration.
+- Shows all active items for today's update flow
+- Displays yesterday-confirmed completion count, active item count, and total streak count
+- Supports direct check-in from each streak card
+- Shows a random encouragement message on load
+- Shows a recent 7-day reflection summary across check-ins
+- Triggers milestone celebration modal on Day 7, 14, 30, 60, and 100
 
----
+### Item Management
 
-## 3. Typography
-The typography system uses a high-contrast pairing: **Space Grotesk** for technical, bold headlines and **Manrope** for legible, functional body text.
+- Create a not-to-do item with title and optional description
+- View active items and archived items separately
+- Archive, restore, and permanently delete items
 
-- **Display (Space Grotesk):** Large, assertive, and tight-tracked. Use `display-lg` for current streak counts to make progress feel monumental.
-- **Headlines (Space Grotesk):** Use `headline-sm` for habit titles. This font’s geometric nature reinforces the "modern/minimal" aesthetic.
-- **Body & Labels (Manrope):** Use `body-md` for descriptions. Manrope provides a human touch to an otherwise cold, technical environment.
-- **Hierarchy Strategy:** Create focus by using `on_surface_variant` (#adaaaa) for secondary info (like "Last checked 2h ago") and `on_surface` (#ffffff) for active content.
+### Check-in Rules
 
----
+- `Day +1` confirms yesterday was successful and increments streak by 1
+- `忍住 +1` 單獨累積當天忍住次數，不直接增加 streak
+- `破戒，重置 Day` records today's failure and resets streak to 0
+- Successful check-ins record temptation intensity
+- Check-ins can record trigger tags, failures can also store a short note
+- No check-in means no gain and no penalty
+- Same item cannot record more than one `Day +1` for the same yesterday date
+- Even after `Day +1`, the user can still press `破戒，重置 Day`
+- `bestStreak` is updated automatically when a new record is reached
 
-## 4. Elevation & Depth
+### Detail Page
 
-### The Layering Principle
-Depth is achieved through **Tonal Layering**. Instead of a shadow, place a `surface_container_lowest` card inside a `surface_container_high` section to create a "recessed" or "carved" look.
+- Shows current streak as the hero number
+- Shows best streak, success rate, resisted day count, and failed day count
+- Shows recent 7-day insight summaries, common triggers, and risk window hints
+- Shows a heatmap-style check-in history view
+- Supports archive action from the detail page
 
-### Ambient Shadows
-If an element must float (e.g., a "New Habit" FAB), use an extra-diffused shadow:
-- **Shadow:** 0px 20px 40px rgba(0, 0, 0, 0.4).
-- **Coloring:** Tint the shadow with a hint of `primary_dim` to simulate the violet glow reflecting off the obsidian surface.
+### Delight and UI
 
-### The Ghost Border Fallback
-If contrast is required for accessibility, use a **Ghost Border**: `outline_variant` at 15% opacity. Never use 100% opaque lines.
+- Bottom navigation for main flows
+- Milestone confetti modal
+- Warm, playful visual theme instead of punitive dark mode
+- Mobile-first layout
 
----
+## Actual Tech Stack
 
-## 5. Components
+| Layer | Current choice |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| UI | React 18 client components |
+| Styling | Tailwind CSS |
+| Persistence | Browser `localStorage` |
+| Animation / celebration | `canvas-confetti` |
+| PWA surface | `manifest.json` only |
+| Backend | None |
+| Auth | None |
+| Database | None |
 
-### Streak Cards
-- **Structure:** No borders. Use `surface_container_low` background. 
-- **Visuals:** Use `display-sm` for the streak number.
-- **The Glow:** Apply a subtle `primary_dim` outer glow (4px blur) only when a streak is active to signify "heat."
+## Current Routes
 
-### Check-in Buttons (Success/Fail)
-- **Success:** Use `primary` background with `on_primary` text. Use `xl` (0.75rem) roundedness.
-- **Fail:** Use `surface_container_highest` with an `error` colored "Ghost Border."
-- **Interaction:** On press, the button should scale down slightly (0.98) and increase in surface brightness (`surface_bright`).
+- `/` dashboard for today's update flow
+- `/items` list management for active and archived items
+- `/items/new` create a new not-to-do item
+- `/items/[id]` item detail, metrics, and heatmap history
 
-### GitHub-Style Heatmap
-- **Empty State:** `surface_container_highest`.
-- **Active State:** A gradient scale from `primary_container` (low intensity) to `primary` (high intensity).
-- **Spacing:** Use `sm` (0.125rem) gaps. Forbid lines between cells; use the natural contrast of the background to define the grid.
+## Current Data Model
 
-### Input Fields
-- **Style:** Underline only or "recessed" block. 
-- **Active State:** The label transitions to `primary` color, and the "Ghost Border" increases to 40% opacity.
+```ts
+interface NotToDoItem {
+  id: string
+  title: string
+  description: string
+  streak: number
+  bestStreak: number
+  lastCheckin: string | null
+  isActive: boolean
+  createdAt: string
+}
 
----
+interface Checkin {
+  id: string
+  notToDoId: string
+  date: string
+  status: 'resisted' | 'failed'
+  resistCount: number
+  temptationLevel: 'none' | 'some' | 'many' | null
+  triggerTags: string[]
+  note: string
+  createdAt: string
+}
+```
 
-## 6. Do's and Don'ts
+Notes:
 
-### Do:
-- **Use "Active" Whitespace:** Leave significant vertical breathing room between different habits to reduce cognitive load.
-- **Embrace Asymmetry:** Align the habit name to the left and the streak count to the far right to create an editorial layout feel.
-- **Focus on Micro-interactions:** Use smooth, ease-in-out transitions for "Check-in" states to make the "Not-To-Do" action feel rewarding.
+- `resistCount` is a legacy compatibility field; failed records mirror the current-day resist total for context
+- The current product rule is `Day +1` for yesterday once per date, while `忍住 +1` can accumulate multiple times today
+- Local storage keys are `ntd_items`, `ntd_checkins`, `ntd_daily_resists`, and `ntd_schema_version`
 
-### Don't:
-- **No Dividers:** Never use a horizontal rule `<hr>` to separate list items. Use a `16px` or `24px` spacing jump instead.
-- **No Pure White:** Avoid `#ffffff` for long-form text; use `on_surface_variant` to prevent eye strain in a dark-only environment.
-- **No Sharp Corners:** Avoid `none` roundedness. Even the most "brutal" elements should have at least `DEFAULT` (0.25rem) to feel premium and engineered.
+## What Is Not Implemented Yet
+
+- User accounts or login
+- Cloud sync across devices
+- PostgreSQL, Drizzle, Prisma, or any server database
+- Public or private challenges
+- Share links
+- Hall of Shame
+- Leaderboards
+- Push notifications
+- Service worker caching
+- Screenshot sharing
+
+## Product Reality Check
+
+This current version is stronger than a plain streak loop now. It records some of the tension behind the result, not just the result itself.
+
+The core product idea, `想做了，但我沒有做`, is now partially represented in the shipped data model. The app records temptation intensity, trigger tags, and failure notes, then turns those into simple 7-day reflections.
+
+The remaining gap is depth. The app still captures one summary per day, not a richer sequence of near-misses across the day.
+
+## Near-Term Direction
+
+The next high-leverage step is not auth or social infra.
+
+The next step is to deepen the single-player loop again:
+
+- refine the quality of the reflection layer
+- decide whether multiple same-day temptation events are worth capturing
+- make shareable artifacts from the new insight data
+
+The product has crossed from tracker into insight tool. Now it needs sharper reflection and better output.
+
+## Longer-Term Direction
+
+After the single-player insight loop is strong, the future expansion path is:
+
+1. Optional account and sync
+2. Shareable progress artifacts
+3. Challenges and accountability groups
+4. Hall of Shame and social pressure mechanics
+
+The order matters. Social features are more powerful after the product already knows why the user struggles.

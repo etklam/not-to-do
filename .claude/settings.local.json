@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(plan-ceo-review)",
+      "Bash(~/.claude/skills/gstack/bin/*)",
+      "Skill(qa)",
+      "Bash(head:*)",
+      "Bash(npm run:*)",
+      "Bash(sleep 5:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
