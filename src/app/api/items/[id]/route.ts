@@ -30,13 +30,29 @@ export async function PATCH(
 
     // Only allow updating specific fields
     const updates: Record<string, unknown> = {}
-    if (body.title !== undefined) updates.title = body.title.trim()
+    if (body.title !== undefined) {
+      const title = body.title.trim()
+      if (!title) {
+        return NextResponse.json(
+          { error: 'Title is required' },
+          { status: 400 }
+        )
+      }
+      updates.title = title
+    }
     if (body.description !== undefined)
       updates.description = body.description.trim()
     if (body.isActive !== undefined) updates.isActive = body.isActive
     if (body.streak !== undefined) updates.streak = body.streak
     if (body.bestStreak !== undefined) updates.bestStreak = body.bestStreak
     if (body.lastCheckin !== undefined) updates.lastCheckin = body.lastCheckin
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: 'No valid fields to update' },
+        { status: 400 }
+      )
+    }
 
     const [item] = await db
       .update(notToDos)

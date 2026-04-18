@@ -74,6 +74,13 @@
   "detail": {
     "notFound": "搵唔到呢個項目",
     "backHome": "返去首頁",
+    "motivationTitle": "動機",
+    "motivationEdit": "編輯",
+    "motivationSave": "儲存",
+    "motivationSaving": "儲存緊…",
+    "motivationCancel": "取消",
+    "motivationPlaceholder": "寫低你點解想戒，提醒未來嘅自己…",
+    "motivationEmpty": "未寫動機，撳右上角可以補返。",
     "streakZero": "已返到 Day 0",
     "streakCurrent": "目前嚟到 {day}",
     "todayResist": "今日忍住 {count} 次",

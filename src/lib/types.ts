@@ -9,6 +9,15 @@ export interface NotToDoItem {
   createdAt: string // ISO timestamp
 }
 
+export interface ItemUpdates {
+  title?: string
+  description?: string
+  streak?: number
+  bestStreak?: number
+  lastCheckin?: string | null
+  isActive?: boolean
+}
+
 export type CheckinStatus = 'resisted' | 'failed'
 
 export type TemptationLevel = 'none' | 'some' | 'many'

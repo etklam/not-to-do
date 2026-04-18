@@ -20,7 +20,7 @@ export default function ItemDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const { items, loaded, archiveItem } = useItems()
+  const { items, loaded, archiveItem, updateItem } = useItems()
   const {
     doCheckin,
     getCheckinForDate,
@@ -33,6 +33,9 @@ export default function ItemDetailPage() {
     useCheckins()
   const [milestone, setMilestone] = useState<number | null>(null)
   const [item, setItem] = useState<NotToDoItem | null>(null)
+  const [descriptionDraft, setDescriptionDraft] = useState('')
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [isSavingDescription, setIsSavingDescription] = useState(false)
 
   useEffect(() => {
     if (loaded) {
@@ -53,6 +56,11 @@ export default function ItemDetailPage() {
     window.addEventListener('ntd-items-updated', handler)
     return () => window.removeEventListener('ntd-items-updated', handler)
   }, [id])
+
+  useEffect(() => {
+    if (!item || isEditingDescription) return
+    setDescriptionDraft(item.description)
+  }, [item, isEditingDescription])
 
   if (!loaded) {
     return (
@@ -115,6 +123,23 @@ export default function ItemDetailPage() {
     recordResist(itemId)
   }
 
+  const handleSaveDescription = async () => {
+    if (!item || isSavingDescription) return
+
+    setIsSavingDescription(true)
+    const updated = await updateItem(item.id, {
+      description: descriptionDraft,
+    })
+
+    if (updated) {
+      setItem(updated)
+      setDescriptionDraft(updated.description)
+      setIsEditingDescription(false)
+    }
+
+    setIsSavingDescription(false)
+  }
+
   return (
     <div className="px-4 pt-6 pb-4">
       {/* Header */}
@@ -139,12 +164,66 @@ export default function ItemDetailPage() {
           <h1 className="text-xl font-extrabold text-kawaii-text truncate">
             {item.title}
           </h1>
-          {item.description && (
-            <p className="text-sm text-kawaii-text-light truncate">
-              {item.description}
-            </p>
+        </div>
+      </div>
+
+      <div
+        className="card-kawaii mb-4 animate-slide-up"
+        style={{ animationDelay: '30ms', animationFillMode: 'both' }}
+      >
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="font-bold text-kawaii-text">{t('motivationTitle')}</h3>
+          {!isEditingDescription && (
+            <button
+              onClick={() => setIsEditingDescription(true)}
+              className="text-xs font-semibold text-kawaii-purple hover:text-kawaii-pink transition-colors"
+            >
+              {t('motivationEdit')}
+            </button>
           )}
         </div>
+
+        {isEditingDescription ? (
+          <>
+            <textarea
+              value={descriptionDraft}
+              onChange={(e) => setDescriptionDraft(e.target.value)}
+              placeholder={t('motivationPlaceholder')}
+              maxLength={200}
+              rows={4}
+              className="w-full px-4 py-3 bg-kawaii-cream rounded-kawaii-sm border-2 border-transparent focus:border-kawaii-purple-light focus:bg-white outline-none transition-all text-kawaii-text placeholder:text-kawaii-text-light/50 resize-none"
+            />
+            <div className="mt-3 flex gap-3">
+              <button
+                onClick={() => {
+                  setDescriptionDraft(item.description)
+                  setIsEditingDescription(false)
+                }}
+                disabled={isSavingDescription}
+                className="btn-kawaii-secondary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('motivationCancel')}
+              </button>
+              <button
+                onClick={handleSaveDescription}
+                disabled={isSavingDescription}
+                className="btn-kawaii-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingDescription
+                  ? t('motivationSaving')
+                  : t('motivationSave')}
+              </button>
+            </div>
+          </>
+        ) : item.description ? (
+          <p className="text-sm leading-relaxed text-kawaii-text whitespace-pre-wrap">
+            {item.description}
+          </p>
+        ) : (
+          <p className="text-sm text-kawaii-text-light">
+            {t('motivationEmpty')}
+          </p>
+        )}
       </div>
 
       {/* Big Day Streak Display */}

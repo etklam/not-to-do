@@ -7,6 +7,7 @@ import type {
   Checkin,
   CheckinInput,
   DailyResistLog,
+  ItemUpdates,
 } from './types'
 import { getTodayDateString, getYesterdayDateString } from './utils'
 import { LEGACY_TRIGGER_MAP } from './insights'
@@ -85,6 +86,10 @@ function saveCheckins(checkins: Checkin[]) {
 function saveDailyResists(resists: DailyResistLog[]) {
   localStorage.setItem(RESISTS_KEY, JSON.stringify(resists))
   localStorage.setItem(SCHEMA_VERSION_KEY, String(CURRENT_SCHEMA_VERSION))
+}
+
+function notifyItemsUpdated() {
+  window.dispatchEvent(new Event('ntd-items-updated'))
 }
 
 // Migrate old schema (resistCount-only items) to new schema (streak)
@@ -184,6 +189,7 @@ export function useItems() {
   const persist = useCallback((next: NotToDoItem[]) => {
     setItems(next)
     saveItems(next)
+    notifyItemsUpdated()
   }, [])
 
   const addItem = useCallback(
@@ -221,6 +227,8 @@ export function useItems() {
       persist(next)
       const checkins = getStoredCheckins().filter((c) => c.notToDoId !== id)
       saveCheckins(checkins)
+      const resists = getStoredDailyResists().filter((r) => r.notToDoId !== id)
+      saveDailyResists(resists)
     },
     [persist]
   )
@@ -240,7 +248,42 @@ export function useItems() {
     [items]
   )
 
-  return { items, loaded, addItem, archiveItem, deleteItem, restoreItem, getItem }
+  const updateItem = useCallback(
+    (id: string, updates: ItemUpdates) => {
+      let updatedItem: NotToDoItem | null = null
+      const next = getStoredItems().map((it) => {
+        if (it.id !== id) return it
+
+        const nextItem: NotToDoItem = {
+          ...it,
+          ...updates,
+          title: updates.title !== undefined ? updates.title.trim() : it.title,
+          description:
+            updates.description !== undefined
+              ? updates.description.trim()
+              : it.description,
+        }
+
+        updatedItem = nextItem
+        return nextItem
+      })
+
+      persist(next)
+      return updatedItem
+    },
+    [persist]
+  )
+
+  return {
+    items,
+    loaded,
+    addItem,
+    archiveItem,
+    deleteItem,
+    restoreItem,
+    updateItem,
+    getItem,
+  }
 }
 
 // ─── Check-in Hook ───

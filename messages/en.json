@@ -74,6 +74,13 @@
   "detail": {
     "notFound": "Item not found",
     "backHome": "Back to home",
+    "motivationTitle": "Motivation",
+    "motivationEdit": "Edit",
+    "motivationSave": "Save",
+    "motivationSaving": "Saving…",
+    "motivationCancel": "Cancel",
+    "motivationPlaceholder": "Write down why you want to quit, so future you remembers…",
+    "motivationEmpty": "No motivation yet. Tap edit to add one.",
     "streakZero": "Back to Day 0",
     "streakCurrent": "Currently at {day}",
     "todayResist": "Resisted {count, plural, one{1 time} other{# times}} today",

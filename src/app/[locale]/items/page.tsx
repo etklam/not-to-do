@@ -109,12 +109,20 @@ export default function ItemsPage() {
                         )}
                       </div>
                     </Link>
-                    <button
-                      onClick={() => handleArchive(item.id)}
-                      className="text-xs text-kawaii-text-light hover:text-kawaii-danger transition-colors px-2 py-1 rounded-kawaii-sm hover:bg-kawaii-danger-light/50"
-                    >
-                      {t('archive')}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleArchive(item.id)}
+                        className="text-xs text-kawaii-text-light hover:text-kawaii-danger transition-colors px-2 py-1 rounded-kawaii-sm hover:bg-kawaii-danger-light/50"
+                      >
+                        {t('archive')}
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(item.id)}
+                        className="text-xs text-kawaii-text-light hover:text-kawaii-danger transition-colors px-2 py-1 rounded-kawaii-sm hover:bg-kawaii-danger-light/50"
+                      >
+                        {t('delete')}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

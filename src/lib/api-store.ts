@@ -2,10 +2,29 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from './auth-context'
-import type { NotToDoItem, Checkin, CheckinInput, DailyResistLog } from './types'
+import type {
+  NotToDoItem,
+  Checkin,
+  CheckinInput,
+  DailyResistLog,
+  ItemUpdates,
+} from './types'
 import { v4 as uuidv4 } from 'uuid'
 
 // ─── API-backed Items Hook ───
+
+function normalizeItem(it: Record<string, unknown>): NotToDoItem {
+  return {
+    id: String(it.id),
+    title: String(it.title),
+    description: String(it.description || ''),
+    streak: Number(it.streak || 0),
+    bestStreak: Number(it.bestStreak || it.best_streak || 0),
+    lastCheckin: String(it.lastCheckin || it.last_checkin || '') || null,
+    isActive: Boolean(it.isActive ?? it.is_active ?? true),
+    createdAt: String(it.createdAt || it.created_at || new Date().toISOString()),
+  }
+}
 
 export function useApiItems() {
   const { user } = useAuth()
@@ -18,18 +37,7 @@ export function useApiItems() {
       const res = await fetch('/api/items')
       if (!res.ok) return
       const data = await res.json()
-      setItems(
-        data.items.map((it: Record<string, unknown>) => ({
-          id: it.id,
-          title: it.title,
-          description: it.description || '',
-          streak: it.streak || 0,
-          bestStreak: it.bestStreak || it.best_streak || 0,
-          lastCheckin: it.lastCheckin || it.last_checkin || null,
-          isActive: it.isActive ?? it.is_active ?? true,
-          createdAt: it.createdAt || it.created_at || new Date().toISOString(),
-        }))
-      )
+      setItems(data.items.map(normalizeItem))
     } finally {
       setLoaded(true)
     }
@@ -49,16 +57,7 @@ export function useApiItems() {
       })
       if (!res.ok) return null
       const data = await res.json()
-      const item: NotToDoItem = {
-        id: data.item.id,
-        title: data.item.title,
-        description: data.item.description || '',
-        streak: data.item.streak || 0,
-        bestStreak: data.item.bestStreak || data.item.best_streak || 0,
-        lastCheckin: data.item.lastCheckin || data.item.last_checkin || null,
-        isActive: data.item.isActive ?? data.item.is_active ?? true,
-        createdAt: data.item.createdAt || data.item.created_at || new Date().toISOString(),
-      }
+      const item = normalizeItem(data.item)
       setItems((prev) => [...prev, item])
       return item
     },
@@ -92,12 +91,35 @@ export function useApiItems() {
     )
   }, [])
 
+  const updateItem = useCallback(async (id: string, updates: ItemUpdates) => {
+    const res = await fetch(`/api/items/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    if (!res.ok) return null
+
+    const data = await res.json()
+    const item = normalizeItem(data.item)
+    setItems((prev) => prev.map((it) => (it.id === id ? item : it)))
+    return item
+  }, [])
+
   const getItem = useCallback(
     (id: string) => items.find((it) => it.id === id) ?? null,
     [items]
   )
 
-  return { items, loaded, addItem, archiveItem, deleteItem, restoreItem, getItem }
+  return {
+    items,
+    loaded,
+    addItem,
+    archiveItem,
+    deleteItem,
+    restoreItem,
+    updateItem,
+    getItem,
+  }
 }
 
 // ─── API-backed Checkins Hook ───

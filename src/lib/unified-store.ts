@@ -4,7 +4,7 @@ import { useAuth } from './auth-context'
 import { useItems as useLocalItems, useCheckins as useLocalCheckins } from './store'
 import { useApiItems, useApiCheckins } from './api-store'
 import { useCallback, useMemo } from 'react'
-import type { CheckinInput } from './types'
+import type { CheckinInput, ItemUpdates } from './types'
 
 // Unified hooks that switch between localStorage (anonymous) and API (logged in)
 // Wraps sync localStorage functions to match async API signatures
@@ -49,6 +49,14 @@ export function useItems() {
     [isApi, api, local]
   )
 
+  const updateItem = useCallback(
+    async (id: string, updates: ItemUpdates) => {
+      if (isApi) return api.updateItem(id, updates)
+      return local.updateItem(id, updates)
+    },
+    [isApi, api, local]
+  )
+
   const source = isApi ? api : local
 
   return useMemo(
@@ -59,9 +67,19 @@ export function useItems() {
       archiveItem,
       deleteItem,
       restoreItem,
+      updateItem,
       getItem: source.getItem,
     }),
-    [source.items, source.loaded, addItem, archiveItem, deleteItem, restoreItem, source.getItem]
+    [
+      source.items,
+      source.loaded,
+      addItem,
+      archiveItem,
+      deleteItem,
+      restoreItem,
+      updateItem,
+      source.getItem,
+    ]
   )
 }
 
