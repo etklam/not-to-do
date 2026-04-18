@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: 'Not-To-Do | 不做清單',
   description: '追蹤你唔想做嘅嘢，每日忍住就係勝利 ✨',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
