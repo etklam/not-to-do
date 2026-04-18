@@ -229,7 +229,9 @@
     "syncSuccess": "已同步 {items} 個項目",
     "syncError": "同步失敗",
     "syncNoData": "冇本機資料需要同步",
-    "syncAlreadyHasData": "帳戶已有資料，無法同步"
+    "syncAlreadyHasData": "帳戶已有資料，無法同步",
+    "promptTitle": "保存你嘅進度？",
+    "promptAction": "建立帳戶"
   },
   "challenge": {
     "title": "挑戰 🏟️",

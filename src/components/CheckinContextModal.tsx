@@ -66,7 +66,7 @@ export default function CheckinContextModal({
     <div className="fixed inset-0 z-[110] flex items-end justify-center p-3 sm:items-center sm:p-6">
       <div className="absolute inset-0 bg-kawaii-text/30 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-md rounded-[28px] bg-white p-5 shadow-kawaii sm:p-6">
+      <div className="relative w-full max-w-md max-h-[90vh] sm:max-h-none overflow-y-auto rounded-[28px] bg-white p-5 shadow-kawaii sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-kawaii-text-light">

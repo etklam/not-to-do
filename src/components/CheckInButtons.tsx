@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl'
 import CheckinContextModal from './CheckinContextModal'
 import type { CheckinInput, CheckinStatus } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/lib/auth-context'
+import { Link } from '@/i18n/navigation'
 
 interface CheckInButtonsProps {
   notToDoId: string
@@ -24,9 +26,16 @@ export default function CheckInButtons({
   onResist,
 }: CheckInButtonsProps) {
   const t = useTranslations('checkin')
+  const tAuth = useTranslations('auth')
+  const { user } = useAuth()
   const [animating, setAnimating] = useState<CheckinStatus | null>(null)
   const [draftStatus, setDraftStatus] = useState<CheckinStatus | null>(null)
   const [resistAnimating, setResistAnimating] = useState(false)
+  const [hasActed, setHasActed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return sessionStorage.getItem('ntd_account_prompt_dismissed') === '1'
+  })
   const successCheckedIn = yesterdayStatus === 'resisted'
   const yesterdayFailed = yesterdayStatus === 'failed'
   const yesterdayRecorded = yesterdayStatus !== null
@@ -44,6 +53,7 @@ export default function CheckInButtons({
   const handleSubmit = useCallback(
     (input: CheckinInput) => {
       setAnimating(input.status)
+      setHasActed(true)
       onCheckin(notToDoId, input)
       setDraftStatus(null)
       setTimeout(() => setAnimating(null), 400)
@@ -53,6 +63,7 @@ export default function CheckInButtons({
 
   const handleResist = useCallback(() => {
     setResistAnimating(true)
+    setHasActed(true)
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(50)
     }
@@ -127,6 +138,29 @@ export default function CheckInButtons({
             ? t('helpTodayFailed')
             : t('helpDefault')}
         </p>
+
+        {!user && hasActed && !dismissed && (
+          <div className="mt-3 flex items-center gap-3 rounded-[20px] border-2 border-kawaii-pink-light/40 bg-kawaii-blush px-4 py-3">
+            <p className="flex-1 text-sm font-semibold text-kawaii-text">
+              {tAuth('promptTitle')}{' '}
+              <Link
+                href="/account"
+                className="text-kawaii-purple underline decoration-kawaii-purple-light underline-offset-2 hover:text-kawaii-pink"
+              >
+                {tAuth('promptAction')}
+              </Link>
+            </p>
+            <button
+              onClick={() => {
+                setDismissed(true)
+                sessionStorage.setItem('ntd_account_prompt_dismissed', '1')
+              }}
+              className="text-kawaii-text-light hover:text-kawaii-text"
+            >
+              ×
+            </button>
+          </div>
+        )}
       </div>
 
       <CheckinContextModal

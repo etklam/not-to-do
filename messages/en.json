@@ -229,7 +229,9 @@
     "syncSuccess": "Synced {items} items",
     "syncError": "Sync failed",
     "syncNoData": "No local data to sync",
-    "syncAlreadyHasData": "Account already has data, cannot sync"
+    "syncAlreadyHasData": "Account already has data, cannot sync",
+    "promptTitle": "Save your progress?",
+    "promptAction": "Create account"
   },
   "challenge": {
     "title": "Challenges 🏟️",
