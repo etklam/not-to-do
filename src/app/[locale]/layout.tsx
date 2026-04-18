@@ -2,6 +2,7 @@ import { NextIntlClientProvider, useMessages } from 'next-intl'
 import { setRequestLocale } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import BottomNav from '@/components/BottomNav'
+import { AuthProvider } from '@/lib/auth-context'
 import '../globals.css'
 
 export function generateStaticParams() {
@@ -22,10 +23,12 @@ export default function LocaleLayout({
     <html lang={params.locale} suppressHydrationWarning>
       <body className="antialiased">
         <NextIntlClientProvider locale={params.locale} messages={messages}>
-          <main className="mx-auto max-w-lg min-h-screen safe-bottom">
-            {children}
-          </main>
-          <BottomNav />
+          <AuthProvider>
+            <main className="mx-auto max-w-lg min-h-screen safe-bottom">
+              {children}
+            </main>
+            <BottomNav />
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

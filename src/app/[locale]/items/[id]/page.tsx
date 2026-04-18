@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { getCheckinInsightSummary, getCheckinStatusResult } from '@/lib/insights'
-import { useItems, useCheckins } from '@/lib/store'
+import { useItems, useCheckins } from '@/lib/unified-store'
 
 import HeatmapCalendar from '@/components/HeatmapCalendar'
 import CheckInButtons from '@/components/CheckInButtons'
@@ -103,8 +103,8 @@ export default function ItemDetailPage() {
     ? tInsights(insightSummary.reflection.key, insightSummary.reflection.params as Record<string, string>)
     : ''
 
-  const handleCheckin = (itemId: string, input: CheckinInput) => {
-    const result = doCheckin(itemId, input)
+  const handleCheckin = async (itemId: string, input: CheckinInput) => {
+    const result = await doCheckin(itemId, input)
     refreshCheckins()
     if (result.isMilestone) {
       setMilestone(result.newStreak)
@@ -233,7 +233,7 @@ export default function ItemDetailPage() {
           </div>
         </div>
         <div className="card-kawaii text-center !p-3">
-          <div className="text-xl font-extrabold text-emerald-500">
+          <div className="text-xl font-extrabold text-kawaii-mint">
             {formatDayLabel(resistedDays)}
           </div>
           <div className="text-[10px] text-kawaii-text-light font-semibold">

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslations, useMessages } from 'next-intl'
 import { Link } from '@/i18n/navigation'
-import { useItems, useCheckins } from '@/lib/store'
+import { useItems, useCheckins } from '@/lib/unified-store'
 import { getCheckinInsightSummary } from '@/lib/insights'
 import { getRandomMessageIndex } from '@/lib/messages'
 import type { CheckinInput } from '@/lib/types'
@@ -79,8 +79,8 @@ export default function Dashboard() {
   const weeklyInsight = getCheckinInsightSummary(checkins)
 
   const handleCheckin = useCallback(
-    (id: string, input: CheckinInput) => {
-      const result = doCheckin(id, input)
+    async (id: string, input: CheckinInput) => {
+      const result = await doCheckin(id, input)
       refreshCheckins()
       if (result.isMilestone) {
         setMilestone(result.newStreak)

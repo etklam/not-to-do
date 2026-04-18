@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
-import { useItems } from '@/lib/store'
+import { useItems } from '@/lib/unified-store'
 import { formatDayLabel } from '@/lib/utils'
 import EmptyState from '@/components/EmptyState'
 

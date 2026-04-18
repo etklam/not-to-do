@@ -52,6 +52,30 @@ export default function BottomNav() {
         </div>
       ),
     },
+    {
+      href: '/challenges' as const,
+      label: t('challenges'),
+      icon: (active: boolean) => (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? '#F59E0B' : '#8B839C'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 010-5C7 4 7 7 7 7" />
+          <path d="M18 9h1.5a2.5 2.5 0 000-5C17 4 17 7 17 7" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+          <path d="M18 2H6v7a6 6 0 1012 0V2Z" />
+        </svg>
+      ),
+    },
+    {
+      href: '/account' as const,
+      label: t('account'),
+      icon: (active: boolean) => (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? '#FF6B9D' : '#8B839C'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
   ]
 
   return (
@@ -70,7 +94,7 @@ export default function BottomNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex flex-col items-center gap-1 px-4 py-1.5 rounded-kawaii-sm',
+                    'flex flex-col items-center gap-1 px-3 py-1.5 rounded-kawaii-sm',
                     'transition-all duration-200',
                     isActive ? 'text-kawaii-pink' : 'text-kawaii-text-light',
                     item.isNew && 'px-2'

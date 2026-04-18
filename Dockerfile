@@ -16,6 +16,8 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# DATABASE_URL is not needed at build time for Next.js
+# It will be provided at runtime via environment variables
 RUN npm run build
 
 # Production image, copy all the files and run next

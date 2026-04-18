@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
-import { useItems } from '@/lib/store'
+import { useItems } from '@/lib/unified-store'
 
 const SUGGESTION_KEYS = [
   { emoji: '📱', key: 'suggestion1' },
