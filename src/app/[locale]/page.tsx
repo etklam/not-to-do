@@ -229,7 +229,7 @@ export default function Dashboard() {
 
           <div className="mt-3 rounded-[20px] bg-kawaii-blush px-4 py-3">
             <p className="text-xs font-semibold text-kawaii-text-light">
-              {weeklyInsight.riskWindow
+              {weeklyInsight.riskWindow && tInsights(weeklyInsight.riskWindow)
                 ? t('insightRiskWindow', { window: tInsights(weeklyInsight.riskWindow) })
                 : t('insightNoRisk')}
             </p>
