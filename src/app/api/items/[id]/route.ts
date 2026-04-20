@@ -17,7 +17,7 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
 
-    // Verify ownership
+    // Verify ownership + read immutable mode linkage
     const existing = await db
       .select({ id: notToDos.id })
       .from(notToDos)
@@ -26,6 +26,16 @@ export async function PATCH(
 
     if (existing.length === 0) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    if (body.mode !== undefined || body.challengeId !== undefined) {
+      return NextResponse.json(
+        {
+          error:
+            'mode/challengeId are immutable. Create a new item instead of converting.',
+        },
+        { status: 400 }
+      )
     }
 
     // Only allow updating specific fields

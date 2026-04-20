@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
 import { challenges, challengeParticipants, notToDos, users } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
@@ -28,11 +28,26 @@ export async function GET(
       )
     }
 
+    const [selfParticipant] = await db
+      .select({ id: challengeParticipants.id })
+      .from(challengeParticipants)
+      .where(
+        and(
+          eq(challengeParticipants.challengeId, challenge.id),
+          eq(challengeParticipants.userId, user.id)
+        )
+      )
+
+    if (!challenge.isPublic && challenge.creatorId !== user.id && !selfParticipant) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Get all participants with their linked not-to-do data
     const participants = await db
       .select({
         userId: challengeParticipants.userId,
         joinedAt: challengeParticipants.joinedAt,
+        itemId: challengeParticipants.notToDoId,
         userName: users.name,
         userEmail: users.email,
         notToDoTitle: notToDos.title,
@@ -47,11 +62,13 @@ export async function GET(
       .where(eq(challengeParticipants.challengeId, challenge.id))
       .orderBy(notToDos.streak)
 
-    const hasJoined = participants.some((p) => p.userId === user.id)
+    const hasJoined = Boolean(selfParticipant)
+    const origin = new URL(request.url).origin
 
     return NextResponse.json({
       challenge: {
         ...challenge,
+        shareUrl: `${origin}/challenges/share/${challenge.shareCode}`,
         hasJoined,
         participantCount: participants.length,
       },
@@ -96,7 +113,10 @@ export async function DELETE(
       )
     }
 
-    await db.delete(challenges).where(eq(challenges.id, challenge.id))
+    await db
+      .update(challenges)
+      .set({ status: 'archived' })
+      .where(eq(challenges.id, challenge.id))
 
     return NextResponse.json({ success: true })
   } catch {

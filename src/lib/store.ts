@@ -28,6 +28,8 @@ interface LegacyItem {
   bestResistCount?: number
   lastCheckin?: string | null
   isActive?: boolean
+  mode?: 'personal' | 'challenge'
+  challengeId?: string | null
   createdAt: string
 }
 
@@ -102,6 +104,8 @@ function migrateItems(items: LegacyItem[]): NotToDoItem[] {
     bestStreak: it.bestStreak ?? it.bestResistCount ?? it.streak ?? it.resistCount ?? 0,
     lastCheckin: it.lastCheckin ?? null,
     isActive: it.isActive ?? true,
+    mode: it.mode ?? 'personal',
+    challengeId: it.challengeId ?? null,
     createdAt: it.createdAt,
   }))
 }
@@ -202,6 +206,8 @@ export function useItems() {
         bestStreak: 0,
         lastCheckin: null,
         isActive: true,
+        mode: 'personal',
+        challengeId: null,
         createdAt: new Date().toISOString(),
       }
       const next = [...getStoredItems(), item]

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
-import { notToDos } from '@/db/schema'
+import { challenges, notToDos } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -35,12 +35,44 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const { title, description } = body
+    const requestedMode =
+      body.mode === 'challenge' ? 'challenge' : 'personal'
+    const challengeId =
+      typeof body.challengeId === 'string' ? body.challengeId : null
 
     if (!title?.trim()) {
       return NextResponse.json(
         { error: 'Title is required' },
         { status: 400 }
       )
+    }
+
+    if (requestedMode === 'personal' && challengeId) {
+      return NextResponse.json(
+        { error: 'Personal item cannot have challengeId' },
+        { status: 400 }
+      )
+    }
+
+    if (requestedMode === 'challenge' && !challengeId) {
+      return NextResponse.json(
+        { error: 'challengeId is required when mode is challenge' },
+        { status: 400 }
+      )
+    }
+
+    if (requestedMode === 'challenge' && challengeId) {
+      const [challenge] = await db
+        .select({ id: challenges.id })
+        .from(challenges)
+        .where(eq(challenges.id, challengeId))
+
+      if (!challenge) {
+        return NextResponse.json(
+          { error: 'Challenge not found' },
+          { status: 404 }
+        )
+      }
     }
 
     // Check max 3 active items
@@ -62,6 +94,8 @@ export async function POST(request: Request) {
         userId: user.id,
         title: title.trim(),
         description: description?.trim() || '',
+        mode: requestedMode,
+        challengeId: requestedMode === 'challenge' ? challengeId : null,
       })
       .returning()
 

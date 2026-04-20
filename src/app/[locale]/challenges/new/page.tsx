@@ -29,7 +29,11 @@ export default function NewChallengePage() {
     fetch('/api/items', { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
-        const active = (data || []).filter((i: { isActive?: boolean }) => i.isActive !== false)
+        const list = Array.isArray(data?.items) ? data.items : []
+        const active = list.filter(
+          (i: { isActive?: boolean; mode?: string }) =>
+            i.isActive !== false && (i.mode ?? 'personal') === 'personal'
+        )
         setItems(active)
         if (active.length > 0) setNotToDoId(active[0].id)
       })
@@ -66,7 +70,7 @@ export default function NewChallengePage() {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim(),
-          notToDoId,
+          sourceItemId: notToDoId,
           isPublic,
         }),
       })
@@ -77,7 +81,9 @@ export default function NewChallengePage() {
       }
 
       const data = await res.json()
-      router.push(`/challenges/${data.slug}`)
+      const slug = data?.challenge?.slug || data?.slug
+      if (!slug) throw new Error('Challenge slug missing')
+      router.push(`/challenges/${slug}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
       setIsSubmitting(false)

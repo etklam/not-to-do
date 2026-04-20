@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
-import { challenges, challengeParticipants } from '@/db/schema'
+import { challenges, challengeParticipants, notToDos } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -37,7 +37,7 @@ export async function POST(
     }
 
     const [participation] = await db
-      .select({ id: challengeParticipants.id })
+      .select({ id: challengeParticipants.id, notToDoId: challengeParticipants.notToDoId })
       .from(challengeParticipants)
       .where(
         and(
@@ -52,6 +52,11 @@ export async function POST(
         { status: 400 }
       )
     }
+
+    await db
+      .update(notToDos)
+      .set({ isActive: false })
+      .where(eq(notToDos.id, participation.notToDoId))
 
     await db
       .delete(challengeParticipants)

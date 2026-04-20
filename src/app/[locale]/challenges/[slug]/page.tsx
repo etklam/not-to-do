@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 
 interface Participant {
   userId: string
+  itemId: string
   userName: string
   userEmail: string
   notToDoTitle: string
@@ -24,6 +25,8 @@ interface ChallengeDetail {
   isPublic: boolean
   creatorId: string
   createdAt: string
+  shareCode: string
+  shareUrl: string
 }
 
 interface UserItem {
@@ -50,6 +53,7 @@ export default function ChallengeDetailPage({
   const [items, setItems] = useState<UserItem[]>([])
   const [selectedItemId, setSelectedItemId] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
 
   const fetchChallenge = useCallback(() => {
     fetch(`/api/challenges/${slug}`, { credentials: 'include' })
@@ -74,7 +78,11 @@ export default function ChallengeDetailPage({
     fetch('/api/items', { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
-        const active = (data || []).filter((i: { isActive?: boolean }) => i.isActive !== false)
+        const list = Array.isArray(data?.items) ? data.items : []
+        const active = list.filter(
+          (i: { isActive?: boolean; mode?: string }) =>
+            i.isActive !== false && (i.mode ?? 'personal') === 'personal'
+        )
         setItems(active)
         if (active.length > 0) setSelectedItemId(active[0].id)
       })
@@ -94,7 +102,7 @@ export default function ChallengeDetailPage({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ notToDoId: selectedItemId }),
+        body: JSON.stringify({ sourceItemId: selectedItemId }),
       })
       if (!res.ok) throw new Error('Failed to join')
       setShowJoinModal(false)
@@ -103,6 +111,17 @@ export default function ChallengeDetailPage({
       // silently fail
     } finally {
       setActionLoading(false)
+    }
+  }
+
+  const handleCopyShare = async () => {
+    if (!challenge?.shareUrl) return
+    try {
+      await navigator.clipboard.writeText(challenge.shareUrl)
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 1200)
+    } catch {
+      // ignore clipboard error
     }
   }
 
@@ -204,28 +223,39 @@ export default function ChallengeDetailPage({
           {t('participantCount', { count: participants.length })}
         </span>
 
-        {user && !hasJoined && !isCreator && (
-          <button onClick={handleJoinClick} className="btn-kawaii-primary !py-2 !px-4 text-sm">
-            {t('join')}
-          </button>
-        )}
-        {user && hasJoined && !isCreator && (
+        {challenge.shareUrl && (
           <button
-            onClick={handleLeave}
-            disabled={actionLoading}
-            className="btn-kawaii-secondary !py-2 !px-4 text-sm"
+            type="button"
+            onClick={handleCopyShare}
+            className="btn-kawaii-secondary !py-2 !px-4 text-sm mr-2"
           >
-            {t('leave')}
+            {shareCopied ? 'Copied' : 'Copy Link'}
           </button>
         )}
-        {user && isCreator && (
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="px-4 py-2 text-sm font-bold text-kawaii-danger bg-kawaii-danger-light rounded-kawaii-sm hover:bg-kawaii-danger-light/80 transition-colors"
-          >
-            {t('delete')}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {user && !hasJoined && !isCreator && (
+            <button onClick={handleJoinClick} className="btn-kawaii-primary !py-2 !px-4 text-sm">
+              {t('join')}
+            </button>
+          )}
+          {user && hasJoined && !isCreator && (
+            <button
+              onClick={handleLeave}
+              disabled={actionLoading}
+              className="btn-kawaii-secondary !py-2 !px-4 text-sm"
+            >
+              {t('leave')}
+            </button>
+          )}
+          {user && isCreator && (
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="px-4 py-2 text-sm font-bold text-kawaii-danger bg-kawaii-danger-light rounded-kawaii-sm hover:bg-kawaii-danger-light/80 transition-colors"
+            >
+              {t('delete')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Hall of Shame */}

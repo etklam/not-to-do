@@ -6,6 +6,8 @@ export interface NotToDoItem {
   bestStreak: number // 最佳 Day 序號
   lastCheckin: string | null // 最近一次記錄到的日期，YYYY-MM-DD
   isActive: boolean
+  mode: 'personal' | 'challenge'
+  challengeId: string | null
   createdAt: string // ISO timestamp
 }
 
@@ -16,6 +18,8 @@ export interface ItemUpdates {
   bestStreak?: number
   lastCheckin?: string | null
   isActive?: boolean
+  mode?: 'personal' | 'challenge'
+  challengeId?: string | null
 }
 
 export type CheckinStatus = 'resisted' | 'failed'

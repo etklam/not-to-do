@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 // ─── API-backed Items Hook ───
 
 function normalizeItem(it: Record<string, unknown>): NotToDoItem {
+  const mode = String(it.mode || 'personal')
   return {
     id: String(it.id),
     title: String(it.title),
@@ -22,6 +23,10 @@ function normalizeItem(it: Record<string, unknown>): NotToDoItem {
     bestStreak: Number(it.bestStreak || it.best_streak || 0),
     lastCheckin: String(it.lastCheckin || it.last_checkin || '') || null,
     isActive: Boolean(it.isActive ?? it.is_active ?? true),
+    mode: mode === 'challenge' ? 'challenge' : 'personal',
+    challengeId: (it.challengeId || it.challenge_id
+      ? String(it.challengeId || it.challenge_id)
+      : null),
     createdAt: String(it.createdAt || it.created_at || new Date().toISOString()),
   }
 }

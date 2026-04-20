@@ -28,6 +28,22 @@ export const sessions = pgTable('sessions', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
+// ─── Challenges ───
+
+export const challenges = pgTable('challenges', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description').default(''),
+  slug: varchar('slug', { length: 255 }).unique().notNull(),
+  shareCode: varchar('share_code', { length: 32 }).unique().notNull(),
+  status: varchar('status', { length: 20 }).default('active').notNull(),
+  creatorId: uuid('creator_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  isPublic: boolean('is_public').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
 export const notToDos = pgTable('not_to_dos', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id')
@@ -39,6 +55,10 @@ export const notToDos = pgTable('not_to_dos', {
   bestStreak: integer('best_streak').default(0).notNull(),
   lastCheckin: date('last_checkin'),
   isActive: boolean('is_active').default(true).notNull(),
+  mode: varchar('mode', { length: 20 }).default('personal').notNull(),
+  challengeId: uuid('challenge_id').references(() => challenges.id, {
+    onDelete: 'set null',
+  }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
@@ -74,20 +94,6 @@ export const dailyResists = pgTable(
   },
   (t) => [unique().on(t.notToDoId, t.date)]
 )
-
-// ─── Challenges ───
-
-export const challenges = pgTable('challenges', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  title: varchar('title', { length: 255 }).notNull(),
-  description: text('description').default(''),
-  slug: varchar('slug', { length: 255 }).unique().notNull(),
-  creatorId: uuid('creator_id')
-    .references(() => users.id, { onDelete: 'cascade' })
-    .notNull(),
-  isPublic: boolean('is_public').default(true).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
 
 export const challengeParticipants = pgTable(
   'challenge_participants',

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
 import { challenges, challengeParticipants, notToDos } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ shareCode: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { slug } = await params
+    const { shareCode } = await params
     const body = await request.json()
     const sourceItemId = body.sourceItemId ?? body.notToDoId
 
@@ -28,7 +28,7 @@ export async function POST(
     const [challenge] = await db
       .select()
       .from(challenges)
-      .where(eq(challenges.slug, slug))
+      .where(eq(challenges.shareCode, shareCode))
 
     if (!challenge) {
       return NextResponse.json(
@@ -37,21 +37,13 @@ export async function POST(
       )
     }
 
-    if (challenge.status !== 'active') {
+    if (!challenge.isPublic || challenge.status !== 'active') {
       return NextResponse.json(
-        { error: 'Challenge is not active' },
+        { error: 'Challenge is not joinable' },
         { status: 400 }
       )
     }
 
-    if (!challenge.isPublic && challenge.creatorId !== user.id) {
-      return NextResponse.json(
-        { error: 'Challenge is private' },
-        { status: 403 }
-      )
-    }
-
-    // Verify the source item belongs to the user
     const [item] = await db
       .select({
         id: notToDos.id,
@@ -68,7 +60,6 @@ export async function POST(
       )
     }
 
-    // Check not already joined
     const [existing] = await db
       .select({ id: challengeParticipants.id })
       .from(challengeParticipants)
@@ -86,7 +77,6 @@ export async function POST(
       )
     }
 
-    // Check max 3 active challenges per user
     const activeParticipations = await db
       .select({ id: challengeParticipants.id })
       .from(challengeParticipants)
@@ -119,7 +109,10 @@ export async function POST(
       })
       .returning()
 
-    return NextResponse.json({ participant, item: challengeItem }, { status: 201 })
+    return NextResponse.json(
+      { participant, item: challengeItem, slug: challenge.slug },
+      { status: 201 }
+    )
   } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
