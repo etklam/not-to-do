@@ -48,6 +48,15 @@ export default function MilestoneModal({ streak, onClose }: MilestoneModalProps)
     fireConfetti()
   }, [fireConfetti])
 
+  // Escape key to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   const milestoneKey = getMilestoneKey(streak)
   const message = milestoneKey === 'default'
     ? t('default', { day: formatDayLabel(streak) })
@@ -57,6 +66,9 @@ export default function MilestoneModal({ streak, onClose }: MilestoneModalProps)
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-6"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('title')}
     >
       <div className="absolute inset-0 bg-kawaii-text/20 backdrop-blur-sm" />
       <div

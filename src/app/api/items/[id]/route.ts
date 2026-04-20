@@ -53,9 +53,6 @@ export async function PATCH(
     if (body.description !== undefined)
       updates.description = body.description.trim()
     if (body.isActive !== undefined) updates.isActive = body.isActive
-    if (body.streak !== undefined) updates.streak = body.streak
-    if (body.bestStreak !== undefined) updates.bestStreak = body.bestStreak
-    if (body.lastCheckin !== undefined) updates.lastCheckin = body.lastCheckin
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(

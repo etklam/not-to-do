@@ -15,9 +15,9 @@ export function getYesterdayDateString(today: string): string {
   return `${year}-${month}-${day}`
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string, locale?: string): string {
   const date = new Date(dateStr + 'T00:00:00')
-  return date.toLocaleDateString('zh-TW', {
+  return date.toLocaleDateString(locale || 'zh-TW', {
     month: 'short',
     day: 'numeric',
   })
@@ -25,6 +25,15 @@ export function formatDate(dateStr: string): string {
 
 export function formatDayLabel(day: number): string {
   return `Day ${day}`
+}
+
+export function getStreakEmoji(streak: number): string {
+  if (streak >= 100) return '👑'
+  if (streak >= 60) return '💎'
+  if (streak >= 30) return '🔥'
+  if (streak >= 14) return '⭐'
+  if (streak >= 7) return '🌱'
+  return '🌸'
 }
 
 export function daysSince(dateStr: string): number {

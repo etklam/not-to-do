@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { db } from '@/db'
 import { challenges, challengeParticipants, notToDos } from '@/db/schema'
 import { eq, and, or, sql, count } from 'drizzle-orm'
@@ -6,7 +7,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getPublicOrigin } from '@/lib/public-origin'
 
 function randomToken(length: number) {
-  return Math.random().toString(36).replace('0.', '').slice(0, length)
+  return randomBytes(Math.ceil(length * 0.75)).toString('base64url').slice(0, length)
 }
 
 function toChallengeResponse(
@@ -110,6 +111,20 @@ export async function POST(request: Request) {
     if (!title?.trim()) {
       return NextResponse.json(
         { error: 'Title is required' },
+        { status: 400 }
+      )
+    }
+
+    if (title.trim().length > 255) {
+      return NextResponse.json(
+        { error: 'Title is too long (max 255 characters)' },
+        { status: 400 }
+      )
+    }
+
+    if (description && description.length > 2000) {
+      return NextResponse.json(
+        { error: 'Description is too long (max 2000 characters)' },
         { status: 400 }
       )
     }

@@ -44,6 +44,31 @@ export async function POST(request: Request) {
       )
     }
 
+    if (status !== 'resisted' && status !== 'failed') {
+      return NextResponse.json(
+        { error: 'status must be "resisted" or "failed"' },
+        { status: 400 }
+      )
+    }
+
+    // Validate triggerTags
+    if (triggerTags !== undefined) {
+      if (!Array.isArray(triggerTags) || triggerTags.length > 10 || triggerTags.some((t: unknown) => typeof t !== 'string' || (t as string).length > 50)) {
+        return NextResponse.json(
+          { error: 'Invalid triggerTags' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate note length
+    if (note && typeof note === 'string' && note.length > 2000) {
+      return NextResponse.json(
+        { error: 'Note is too long (max 2000 characters)' },
+        { status: 400 }
+      )
+    }
+
     // Verify ownership of the item
     const item = await db
       .select()

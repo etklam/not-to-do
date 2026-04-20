@@ -10,6 +10,8 @@ import type {
   ItemUpdates,
 } from './types'
 import { v4 as uuidv4 } from 'uuid'
+import { MILESTONE_DAYS } from './messages'
+import { getTodayDateString, getYesterdayDateString } from './utils'
 
 // ─── API-backed Items Hook ───
 
@@ -135,7 +137,7 @@ export function useApiCheckins() {
 
   const recordResist = useCallback(
     async (notToDoId: string): Promise<number> => {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getTodayDateString()
       const res = await fetch('/api/resists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -174,10 +176,8 @@ export function useApiCheckins() {
       notToDoId: string,
       input: CheckinInput
     ): Promise<{ newStreak: number; isMilestone: boolean }> => {
-      const today = new Date().toISOString().split('T')[0]
-      const d = new Date(today + 'T00:00:00')
-      d.setDate(d.getDate() - 1)
-      const yesterday = d.toISOString().split('T')[0]
+      const today = getTodayDateString()
+      const yesterday = getYesterdayDateString(today)
       const targetDate = input.status === 'resisted' ? yesterday : today
 
       const res = await fetch('/api/checkins', {
@@ -204,7 +204,7 @@ export function useApiCheckins() {
       }
 
       const isMilestone =
-        input.status === 'resisted' && [7, 14, 30, 60, 100].includes(newStreak)
+        input.status === 'resisted' && MILESTONE_DAYS.includes(newStreak)
 
       window.dispatchEvent(new Event('ntd-items-updated'))
 
@@ -215,7 +215,7 @@ export function useApiCheckins() {
 
   const getTodayCheckin = useCallback(
     (notToDoId: string): Checkin | null => {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getTodayDateString()
       return (
         checkins.find(
           (c) => c.notToDoId === notToDoId && c.date === today
@@ -245,7 +245,7 @@ export function useApiCheckins() {
 
   const getTodayResistCount = useCallback(
     (notToDoId: string): number => {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getTodayDateString()
       return (
         dailyResists.find(
           (r) => r.notToDoId === notToDoId && r.date === today

@@ -238,7 +238,7 @@ export default function ChallengeDetailPage({
             onClick={handleCopyShare}
             className="btn-kawaii-secondary !py-2 !px-4 text-sm mr-2"
           >
-            {shareCopied ? 'Copied' : 'Copy Link'}
+            {shareCopied ? t('copied') : t('copyLink')}
           </button>
         )}
         <div className="flex items-center gap-2">

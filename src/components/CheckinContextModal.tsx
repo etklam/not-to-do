@@ -32,6 +32,16 @@ export default function CheckinContextModal({
     setNote('')
   }, [open, status])
 
+  // Escape key to close
+  useEffect(() => {
+    if (!open) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, onClose])
+
   if (!open || !status) return null
 
   const isResisted = status === 'resisted'
@@ -63,8 +73,8 @@ export default function CheckinContextModal({
   ]
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-end justify-center p-3 sm:items-center sm:p-6">
-      <div className="absolute inset-0 bg-kawaii-text/30 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-[110] flex items-end justify-center p-3 sm:items-center sm:p-6" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-kawaii-text/30 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
       <div className="relative w-full max-w-md max-h-[90vh] sm:max-h-none overflow-y-auto rounded-[28px] bg-white p-5 shadow-kawaii sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-3">

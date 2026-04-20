@@ -47,6 +47,20 @@ export async function POST(request: Request) {
       )
     }
 
+    if (title.trim().length > 255) {
+      return NextResponse.json(
+        { error: 'Title is too long (max 255 characters)' },
+        { status: 400 }
+      )
+    }
+
+    if (description && description.length > 2000) {
+      return NextResponse.json(
+        { error: 'Description is too long (max 2000 characters)' },
+        { status: 400 }
+      )
+    }
+
     if (requestedMode === 'personal' && challengeId) {
       return NextResponse.json(
         { error: 'Personal item cannot have challengeId' },

@@ -304,7 +304,13 @@
     "deleteConfirmTitle": "確定要刪除挑戰？",
     "deleteConfirmDesc": "呢個動作冇得返轉頭，所有參加者嘅連結都會解除。",
     "deleteConfirmYes": "確定刪除",
-    "deleteConfirmCancel": "算啦"
+    "deleteConfirmCancel": "算啦",
+    "copyLink": "複製連結",
+    "copied": "已複製",
+    "leaveConfirmTitle": "確定退出挑戰？",
+    "leaveConfirmDesc": "你之後可以再加入返。",
+    "leaveConfirmYes": "退出",
+    "leaveConfirmCancel": "取消"
   },
   "push": {
     "enable": "開啟每日提醒",

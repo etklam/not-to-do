@@ -3,9 +3,19 @@ import { db } from '@/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { hashPassword, createSession } from '@/lib/auth'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request)
+    const { ok } = rateLimit(`register:${ip}`, 3, 60 * 1000)
+    if (!ok) {
+      return NextResponse.json(
+        { error: 'Too many registration attempts. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const { email, password, name } = body
 
@@ -16,9 +26,18 @@ export async function POST(request: Request) {
       )
     }
 
-    if (password.length < 6) {
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
+        { error: 'Invalid email format' },
+        { status: 400 }
+      )
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'Password must be at least 8 characters' },
         { status: 400 }
       )
     }

@@ -50,7 +50,6 @@ export async function GET(
         joinedAt: challengeParticipants.joinedAt,
         itemId: challengeParticipants.notToDoId,
         userName: users.name,
-        userEmail: users.email,
         notToDoTitle: notToDos.title,
         streak: notToDos.streak,
         bestStreak: notToDos.bestStreak,

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { db } from '@/db'
 import { challenges, challengeParticipants, notToDos, users } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { createSession, getCurrentUser, hashPassword } from '@/lib/auth'
 
 function randomToken(length: number) {
-  return Math.random().toString(36).replace('0.', '').slice(0, length)
+  return randomBytes(Math.ceil(length * 0.75)).toString('base64url').slice(0, length)
 }
 
 export async function POST(

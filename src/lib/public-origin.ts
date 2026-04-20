@@ -1,4 +1,7 @@
 export function getPublicOrigin(request: Request): string {
+  // Prefer explicit config to prevent host-header injection
+  if (process.env.PUBLIC_ORIGIN) return process.env.PUBLIC_ORIGIN
+
   const forwardedHost = request.headers.get('x-forwarded-host')
   const hostHeader = request.headers.get('host')
   const forwardedProto = request.headers.get('x-forwarded-proto')

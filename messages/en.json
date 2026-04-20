@@ -304,7 +304,13 @@
     "deleteConfirmTitle": "Delete this challenge?",
     "deleteConfirmDesc": "This cannot be undone. All participant links will be removed.",
     "deleteConfirmYes": "Delete",
-    "deleteConfirmCancel": "Cancel"
+    "deleteConfirmCancel": "Cancel",
+    "copyLink": "Copy Link",
+    "copied": "Copied",
+    "leaveConfirmTitle": "Leave this challenge?",
+    "leaveConfirmDesc": "You can rejoin later if you change your mind.",
+    "leaveConfirmYes": "Leave",
+    "leaveConfirmCancel": "Cancel"
   },
   "push": {
     "enable": "Enable daily reminders",

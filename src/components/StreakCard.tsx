@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import type { NotToDoItem, Checkin, CheckinInput } from '@/lib/types'
 import { getCheckinStatusResult } from '@/lib/insights'
-import { cn, formatDayLabel } from '@/lib/utils'
+import { cn, formatDayLabel, getStreakEmoji } from '@/lib/utils'
 import CheckInButtons from './CheckInButtons'
 
 interface StreakCardProps {
@@ -15,16 +15,6 @@ interface StreakCardProps {
   onCheckin: (id: string, input: CheckinInput) => void
   onResist: (id: string) => void
   index: number
-}
-
-function getStreakEmoji(streak: number): string {
-  if (streak >= 100) return '👑'
-  if (streak >= 60) return '💎'
-  if (streak >= 30) return '🏆'
-  if (streak >= 14) return '🌟'
-  if (streak >= 7) return '🔥'
-  if (streak >= 3) return '✨'
-  return '🌱'
 }
 
 function getCardAccent(index: number): string {

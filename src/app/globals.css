@@ -17,6 +17,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Visible focus indicators for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #C084FC;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 body {
   font-family: 'Nunito', system-ui, sans-serif;
   color: var(--color-text);

@@ -21,7 +21,7 @@ const config: Config = {
           cream: '#FFFBF5',
           blush: '#FFF0F5',
           text: '#4A4458',
-          'text-light': '#8B839C',
+          'text-light': '#706A82',
           card: '#FFFFFF',
           danger: '#FF8FA3',
           'danger-light': '#FFD6DE',

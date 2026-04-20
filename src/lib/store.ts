@@ -11,6 +11,7 @@ import type {
 } from './types'
 import { getTodayDateString, getYesterdayDateString } from './utils'
 import { LEGACY_TRIGGER_MAP } from './insights'
+import { MILESTONE_DAYS } from './messages'
 
 const ITEMS_KEY = 'ntd_items'
 const CHECKINS_KEY = 'ntd_checkins'
@@ -469,7 +470,7 @@ export function useCheckins() {
           : item.bestStreak
       const newBest = Math.max(item.bestStreak, streakForBest)
       const isMilestone =
-        status === 'resisted' && [7, 14, 30, 60, 100].includes(newStreak)
+        status === 'resisted' && MILESTONE_DAYS.includes(newStreak)
       const nextLastCheckin =
         item.lastCheckin && item.lastCheckin > targetDate
           ? item.lastCheckin
