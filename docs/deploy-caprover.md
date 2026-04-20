@@ -1,6 +1,6 @@
 # Deploy This Project To CapRover
 
-Last verified: 2026-04-20
+Last verified: 2026-04-21
 
 ## Target
 
@@ -147,6 +147,69 @@ caprover deploy \
 
 Do not use branch deploy when required files are still uncommitted, because CapRover will only package the git branch content.
 
+## Alternative: Deploy via CapRover REST API
+
+Use this when the `caprover` CLI crashes with `ERR_USE_AFTER_CLOSE` (known issue on Node.js >= 25 due to readline incompatibility with inquirer).
+
+### 1. Login and save auth token
+
+```bash
+curl -sS -X POST https://captain.rnsj.913555.xyz/api/v2/login \
+  -H 'content-type: application/json' \
+  -d '{"password":"<CAPROVER_PASSWORD>"}' \
+  -k | jq -r '.data.token' > /tmp/caprover-token.txt
+```
+
+### 2. Create and upload tarball
+
+```bash
+# Create tarball (same as the recommended flow)
+tar --exclude='./.git' \
+  --exclude='./node_modules' \
+  --exclude='./.next' \
+  --exclude='./.gstack' \
+  --exclude='./.claude' \
+  --exclude='./*.tar' \
+  --exclude='./*.tgz' \
+  -czf /tmp/ntd-caprover-deploy-clean.tar.gz .
+
+# Upload to CapRover
+TOKEN=$(cat /tmp/caprover-token.txt)
+curl -sS -X POST \
+  "https://captain.rnsj.913555.xyz/api/v2/user/apps/appData/ntd?detached=1" \
+  -H "x-captain-auth: $TOKEN" \
+  -F "sourceFile=@/tmp/ntd-caprover-deploy-clean.tar.gz" \
+  -k
+```
+
+Expected response: `{"status":101,"description":"Deploy is started","data":{}}`
+
+### 3. Poll build status
+
+```bash
+TOKEN=$(cat /tmp/caprover-token.txt)
+curl -sS "https://captain.rnsj.913555.xyz/api/v2/user/apps/appData/ntd" \
+  -H "x-captain-auth: $TOKEN" -k \
+  | jq '{isAppBuilding: .data.isAppBuilding, isBuildFailed: .data.isBuildFailed}'
+```
+
+Repeat until `isAppBuilding` is `false`. If `isBuildFailed` is `true`, inspect logs:
+
+```bash
+curl -sS "https://captain.rnsj.913555.xyz/api/v2/user/apps/appData/ntd" \
+  -H "x-captain-auth: $TOKEN" -k \
+  | jq -r '.data.logs.lines[]' | tail -30
+```
+
+### 4. Query app env vars (e.g. to get DB password)
+
+```bash
+TOKEN=$(cat /tmp/caprover-token.txt)
+curl -sS "https://captain.rnsj.913555.xyz/api/v2/user/apps/appDefinitions" \
+  -H "x-captain-auth: $TOKEN" -k \
+  | jq '.data.appDefinitions[] | select(.appName=="ntd-postgres") | .envVars[]'
+```
+
 ## Verification
 
 After deploy finishes, CapRover should print:
@@ -209,3 +272,5 @@ If you want a clean HTTPS deployment, fix the CapRover certificate/domain config
 - If your tarball is too large, make sure `.git`, `node_modules`, and `.next` are excluded.
 - If you deploy by branch and changes are missing, switch to the tarball flow so CapRover uploads the current workspace instead of only git-tracked branch content.
 - If APIs return `500` after deploy, first verify `ntd` env vars include `DATABASE_URL`, then run `npm run db:push` against production DB.
+- If `caprover` CLI crashes with `ERR_USE_AFTER_CLOSE`, you are on Node.js >= 25. Use the **Deploy via CapRover REST API** section above instead.
+- If `npm ci` fails inside Docker with "Missing: @swc/helpers", run `npm install @swc/helpers@latest --save-dev` locally, then regenerate the tarball and redeploy.
