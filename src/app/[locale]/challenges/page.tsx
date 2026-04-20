@@ -29,7 +29,10 @@ export default function ChallengesPage() {
     }
     fetch('/api/challenges', { credentials: 'include' })
       .then((res) => res.json())
-      .then((data) => setChallenges(data))
+      .then((data) => {
+        const list = Array.isArray(data?.challenges) ? data.challenges : []
+        setChallenges(list)
+      })
       .catch(() => setChallenges([]))
       .finally(() => setLoading(false))
   }, [user])
