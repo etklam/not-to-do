@@ -1,6 +1,6 @@
 # Deploy This Project To CapRover
 
-Last verified: 2026-04-18
+Last verified: 2026-04-20
 
 ## Target
 
@@ -42,7 +42,7 @@ Notes:
 
 - The actual `POSTGRES_PASSWORD` is stored in the CapRover app env vars for `ntd-postgres`.
 - Do not commit the real password to this repository.
-- The currently deployed `ntd` app still uses browser `localStorage`; the database is provisioned but not wired into the app yet.
+- As of 2026-04-20, production `ntd` is wired to PostgreSQL through `DATABASE_URL`.
 
 ## Prerequisites
 
@@ -84,6 +84,20 @@ caprover deploy \
 
 4. When prompted, enter the CapRover machine password.
 
+5. Ensure `ntd` app env vars include `DATABASE_URL`:
+
+```text
+DATABASE_URL=postgresql://ntd:<POSTGRES_PASSWORD>@srv-captain--ntd-postgres:5432/ntd
+```
+
+6. Apply schema changes to production DB from project root:
+
+```bash
+DATABASE_URL='postgresql://ntd:<POSTGRES_PASSWORD>@captain.rnsj.913555.xyz:54321/ntd' npm run db:push
+```
+
+Without this step, API endpoints can still fail with `500` due to missing tables even if `DATABASE_URL` is set.
+
 ## Provision Or Recreate The PostgreSQL App
 
 If you need to recreate the database app manually in CapRover, use these settings:
@@ -114,7 +128,7 @@ POSTGRES_PASSWORD=<generate a strong password>
 
 8. Deploy the app and confirm the image is running
 
-If the Next.js app is later migrated to PostgreSQL, the internal CapRover host should be preferred:
+For app-to-db traffic inside CapRover, the internal host should be preferred:
 
 ```text
 postgresql://ntd:<POSTGRES_PASSWORD>@srv-captain--ntd-postgres:5432/ntd
@@ -165,6 +179,20 @@ Expected result:
 - TCP connect to port `54321` succeeds
 - CapRover app definition for `ntd-postgres` shows image `postgres:17-alpine`
 
+API verification (confirms DB wiring + schema):
+
+```bash
+EMAIL="caprover-check-$(date +%s)@example.com"
+curl -i -sS http://ntd.rnsj.913555.xyz/api/auth/register \
+  -H 'content-type: application/json' \
+  --data "{\"email\":\"$EMAIL\",\"password\":\"test1234\",\"name\":\"caprover-check\"}"
+```
+
+Expected result:
+
+- Response status is `201 Created`
+- Response body contains a `user.id`
+
 ## Known HTTPS Caveat
 
 As verified on 2026-04-18:
@@ -180,4 +208,4 @@ If you want a clean HTTPS deployment, fix the CapRover certificate/domain config
 - If CapRover says the app deployed but the site does not load, hit `http://ntd.rnsj.913555.xyz/zh-HK` directly to confirm the container is serving traffic.
 - If your tarball is too large, make sure `.git`, `node_modules`, and `.next` are excluded.
 - If you deploy by branch and changes are missing, switch to the tarball flow so CapRover uploads the current workspace instead of only git-tracked branch content.
-- If the app has not been migrated off `localStorage` yet, creating PostgreSQL alone does not change runtime behavior. The application code still needs a server-side data layer.
+- If APIs return `500` after deploy, first verify `ntd` env vars include `DATABASE_URL`, then run `npm run db:push` against production DB.

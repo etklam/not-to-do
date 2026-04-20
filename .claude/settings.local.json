@@ -22,7 +22,11 @@
       "Bash(git rm:*)",
       "Bash(git commit:*)",
       "Bash(git add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(docker compose:*)",
+      "Bash(DATABASE_URL=\"postgresql://ntd:ntd@localhost:5432/ntd\" npx drizzle-kit:*)",
+      "Bash(lsof:*)",
+      "Bash(nc:*)"
     ]
   }
 }
