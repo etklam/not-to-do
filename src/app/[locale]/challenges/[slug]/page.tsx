@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { useSearchParams } from 'next/navigation'
 
 interface Participant {
   userId: string
@@ -37,12 +38,14 @@ interface UserItem {
 export default function ChallengeDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }) {
-  const { slug } = use(params)
+  const { slug } = params
   const t = useTranslations('challenge')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
+  const joinedJustNow = searchParams.get('joined') === '1'
 
   const [challenge, setChallenge] = useState<ChallengeDetail | null>(null)
   const [participants, setParticipants] = useState<Participant[]>([])
@@ -216,6 +219,12 @@ export default function ChallengeDetailPage({
           )}
         </div>
       </div>
+
+      {joinedJustNow && (
+        <div className="mb-4 rounded-kawaii-sm bg-kawaii-mint-light/40 px-3 py-2 text-sm font-semibold text-emerald-700">
+          {t('shareJoinedSuccess')}
+        </div>
+      )}
 
       {/* Meta + action */}
       <div className="flex items-center justify-between mb-6 animate-fade-in">

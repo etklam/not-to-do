@@ -4,6 +4,29 @@ import { checkins, notToDos } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
+function getTodayUtcDateString(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
+function getYesterdayUtcDateString(today: string): string {
+  const d = new Date(`${today}T00:00:00.000Z`)
+  d.setUTCDate(d.getUTCDate() - 1)
+  return d.toISOString().split('T')[0]
+}
+
+function getStreakEndingOnDate(
+  targetDate: string,
+  statusByDate: Map<string, string>
+): number {
+  let streak = 0
+  let cursor = targetDate
+  while (statusByDate.get(cursor) === 'resisted') {
+    streak += 1
+    cursor = getYesterdayUtcDateString(cursor)
+  }
+  return streak
+}
+
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -67,7 +90,50 @@ export async function POST(request: Request) {
         .returning()
     }
 
-    return NextResponse.json({ checkin }, { status: existing.length > 0 ? 200 : 201 })
+    const today = getTodayUtcDateString()
+    const yesterday = getYesterdayUtcDateString(today)
+    const allCheckins = await db
+      .select({
+        date: checkins.date,
+        status: checkins.status,
+      })
+      .from(checkins)
+      .where(eq(checkins.notToDoId, notToDoId))
+
+    const statusByDate = new Map<string, string>()
+    for (const row of allCheckins) {
+      statusByDate.set(String(row.date), String(row.status))
+    }
+
+    let newStreak = getStreakEndingOnDate(yesterday, statusByDate)
+    if (statusByDate.get(today) === 'failed') {
+      newStreak = 0
+    }
+
+    const currentItem = item[0]
+    const newBestStreak = Math.max(currentItem.bestStreak, newStreak)
+    const currentLastCheckin = currentItem.lastCheckin
+      ? String(currentItem.lastCheckin)
+      : null
+    const nextLastCheckin =
+      currentLastCheckin && currentLastCheckin > String(date)
+        ? currentLastCheckin
+        : String(date)
+
+    const [updatedItem] = await db
+      .update(notToDos)
+      .set({
+        streak: newStreak,
+        bestStreak: newBestStreak,
+        lastCheckin: nextLastCheckin,
+      })
+      .where(eq(notToDos.id, notToDoId))
+      .returning()
+
+    return NextResponse.json(
+      { checkin, item: updatedItem },
+      { status: existing.length > 0 ? 200 : 201 }
+    )
   } catch {
     return NextResponse.json(
       { error: 'Internal server error' },

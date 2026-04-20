@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { challenges, challengeParticipants, notToDos } from '@/db/schema'
 import { eq, and, or, sql, count } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
+import { getPublicOrigin } from '@/lib/public-origin'
 
 function randomToken(length: number) {
   return Math.random().toString(36).replace('0.', '').slice(0, length)
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const origin = new URL(request.url).origin
+    const origin = getPublicOrigin(request)
 
     // Get all public challenges + challenges user participates in
     const results = await db
@@ -150,7 +151,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const origin = new URL(request.url).origin
+    const origin = getPublicOrigin(request)
     const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')

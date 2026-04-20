@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { challenges, challengeParticipants, notToDos, users } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
+import { getPublicOrigin } from '@/lib/public-origin'
 
 export async function GET(
   request: Request,
@@ -63,7 +64,7 @@ export async function GET(
       .orderBy(notToDos.streak)
 
     const hasJoined = Boolean(selfParticipant)
-    const origin = new URL(request.url).origin
+    const origin = getPublicOrigin(request)
 
     return NextResponse.json({
       challenge: {

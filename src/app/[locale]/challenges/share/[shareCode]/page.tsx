@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState, use } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { useAuth } from '@/lib/auth-context'
 
@@ -20,9 +21,10 @@ interface UserItem {
 export default function ChallengeSharePage({
   params,
 }: {
-  params: Promise<{ shareCode: string }>
+  params: { shareCode: string }
 }) {
-  const { shareCode } = use(params)
+  const { shareCode } = params
+  const t = useTranslations('challenge')
   const router = useRouter()
   const { user } = useAuth()
   const [challenge, setChallenge] = useState<ShareChallenge | null>(null)
@@ -89,7 +91,7 @@ export default function ChallengeSharePage({
         const data = await res.json()
         throw new Error(data.error || 'Failed to join challenge')
       }
-      router.push(`/challenges/${challenge.slug}`)
+      router.push(`/challenges/${challenge.slug}?joined=1`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join challenge')
       setActionLoading(false)
@@ -110,7 +112,7 @@ export default function ChallengeSharePage({
         <h1 className="text-xl font-bold text-kawaii-text mb-2">Challenge not found</h1>
         {error && <p className="text-sm text-kawaii-danger">{error}</p>}
         <Link href="/challenges" className="btn-kawaii-secondary mt-4 inline-flex">
-          Back to challenges
+          {t('backToList')}
         </Link>
       </div>
     )
@@ -124,8 +126,19 @@ export default function ChallengeSharePage({
           <p className="text-sm text-kawaii-text-light mt-2">{challenge.description}</p>
         )}
         <p className="text-xs text-kawaii-text-light mt-3">
-          {participantCount} participants
+          {t('participantCount', { count: participantCount })}
         </p>
+      </div>
+
+      <div className="mt-4 card-kawaii">
+        <h2 className="text-base font-extrabold text-kawaii-text mb-2">
+          {t('shareWhatHappensTitle')}
+        </h2>
+        <ul className="space-y-1 text-sm text-kawaii-text-light">
+          <li>1. {t('shareStepSelectItem')}</li>
+          <li>2. {t('shareStepCreateCopy')}</li>
+          <li>3. {t('shareStepTrackTogether')}</li>
+        </ul>
       </div>
 
       {error && (
@@ -137,18 +150,21 @@ export default function ChallengeSharePage({
       {cta === 'login' && (
         <div className="mt-4">
           <Link href="/account" className="btn-kawaii-primary w-full text-center">
-            Log in to join
+            {t('shareLoginCta')}
           </Link>
         </div>
       )}
 
       {cta === 'open' && (
         <div className="mt-4">
+          <div className="mb-3 rounded-kawaii-sm bg-kawaii-mint-light/40 px-3 py-2 text-sm font-semibold text-emerald-700">
+            {t('shareAlreadyJoined')}
+          </div>
           <Link
             href={`/challenges/${challenge.slug}`}
             className="btn-kawaii-primary w-full text-center"
           >
-            Open challenge
+            {t('shareOpenCta')}
           </Link>
         </div>
       )}
@@ -156,11 +172,11 @@ export default function ChallengeSharePage({
       {cta === 'join' && (
         <div className="mt-4 card-kawaii">
           <p className="text-sm text-kawaii-text-light mb-3">
-            Select one of your personal items to join this challenge.
+            {t('shareSelectItemHint')}
           </p>
           {items.length === 0 ? (
             <p className="text-sm text-kawaii-text-light mb-3">
-              No active personal items available.
+              {t('shareNoPersonalItems')}
             </p>
           ) : (
             <select
@@ -181,7 +197,7 @@ export default function ChallengeSharePage({
             disabled={actionLoading || !selectedItemId}
             className="btn-kawaii-primary w-full disabled:opacity-40"
           >
-            {actionLoading ? 'Joining...' : 'Join challenge'}
+            {actionLoading ? t('shareJoining') : t('shareJoinCta')}
           </button>
         </div>
       )}
