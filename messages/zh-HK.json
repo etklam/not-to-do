@@ -293,6 +293,8 @@
     "shareAlreadyJoined": "你已經加入咗呢個挑戰。",
     "shareNoPersonalItems": "未有可用嘅個人事項。先建立一個，再返嚟加入。",
     "shareSelectItemHint": "揀你要用嚟加入呢個挑戰嘅個人事項。",
+    "shareGuestHint": "唔使登入都可以直接加入並開始打卡。",
+    "shareAutoCreateItem": "我哋會根據呢個挑戰自動幫你建立一個起始事項。",
     "shareJoinedSuccess": "加入成功，你而家可以同大家一齊追蹤。",
     "rankStreak": "連續日數",
     "rankBest": "最佳紀錄",

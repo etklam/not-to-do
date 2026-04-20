@@ -71,21 +71,22 @@ export default function ChallengeSharePage({
 
   const cta = useMemo(() => {
     if (!challenge) return null
-    if (!user) return 'login'
     if (hasJoined) return 'open'
     return 'join'
-  }, [challenge, user, hasJoined])
+  }, [challenge, hasJoined])
 
   const handleJoin = async () => {
-    if (!selectedItemId || actionLoading || !challenge) return
+    if (actionLoading || !challenge) return
     setActionLoading(true)
     setError('')
     try {
+      const payload =
+        user && selectedItemId ? { sourceItemId: selectedItemId } : {}
       const res = await fetch(`/api/challenges/share/${shareCode}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ sourceItemId: selectedItemId }),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -147,14 +148,6 @@ export default function ChallengeSharePage({
         </div>
       )}
 
-      {cta === 'login' && (
-        <div className="mt-4">
-          <Link href="/account" className="btn-kawaii-primary w-full text-center">
-            {t('shareLoginCta')}
-          </Link>
-        </div>
-      )}
-
       {cta === 'open' && (
         <div className="mt-4">
           <div className="mb-3 rounded-kawaii-sm bg-kawaii-mint-light/40 px-3 py-2 text-sm font-semibold text-emerald-700">
@@ -172,13 +165,13 @@ export default function ChallengeSharePage({
       {cta === 'join' && (
         <div className="mt-4 card-kawaii">
           <p className="text-sm text-kawaii-text-light mb-3">
-            {t('shareSelectItemHint')}
+            {user ? t('shareSelectItemHint') : t('shareGuestHint')}
           </p>
-          {items.length === 0 ? (
+          {user && items.length === 0 ? (
             <p className="text-sm text-kawaii-text-light mb-3">
               {t('shareNoPersonalItems')}
             </p>
-          ) : (
+          ) : user ? (
             <select
               value={selectedItemId}
               onChange={(e) => setSelectedItemId(e.target.value)}
@@ -190,11 +183,15 @@ export default function ChallengeSharePage({
                 </option>
               ))}
             </select>
+          ) : (
+            <p className="text-sm text-kawaii-text-light mb-3">
+              {t('shareAutoCreateItem')}
+            </p>
           )}
           <button
             type="button"
             onClick={handleJoin}
-            disabled={actionLoading || !selectedItemId}
+            disabled={actionLoading}
             className="btn-kawaii-primary w-full disabled:opacity-40"
           >
             {actionLoading ? t('shareJoining') : t('shareJoinCta')}

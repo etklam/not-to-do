@@ -1,29 +1,23 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
-import { challenges, challengeParticipants, notToDos } from '@/db/schema'
+import { challenges, challengeParticipants, notToDos, users } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
-import { getCurrentUser } from '@/lib/auth'
+import { createSession, getCurrentUser, hashPassword } from '@/lib/auth'
+
+function randomToken(length: number) {
+  return Math.random().toString(36).replace('0.', '').slice(0, length)
+}
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ shareCode: string }> }
 ) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    let user = await getCurrentUser()
 
     const { shareCode } = await params
     const body = await request.json()
     const sourceItemId = body.sourceItemId ?? body.notToDoId
-
-    if (!sourceItemId) {
-      return NextResponse.json(
-        { error: 'sourceItemId is required' },
-        { status: 400 }
-      )
-    }
 
     const [challenge] = await db
       .select()
@@ -44,14 +38,52 @@ export async function POST(
       )
     }
 
-    const [item] = await db
-      .select({
-        id: notToDos.id,
-        title: notToDos.title,
-        description: notToDos.description,
-      })
-      .from(notToDos)
-      .where(and(eq(notToDos.id, sourceItemId), eq(notToDos.userId, user.id)))
+    if (!user) {
+      const [guestUser] = await db
+        .insert(users)
+        .values({
+          email: `guest-${Date.now()}-${randomToken(6)}@guest.ntd.local`,
+          passwordHash: await hashPassword(randomToken(20)),
+          name: 'Guest',
+        })
+        .returning({ id: users.id, email: users.email, name: users.name })
+      await createSession(guestUser.id)
+      user = guestUser
+    }
+
+    let item:
+      | {
+          id: string
+          title: string
+          description: string | null
+        }
+      | undefined
+
+    if (sourceItemId) {
+      ;[item] = await db
+        .select({
+          id: notToDos.id,
+          title: notToDos.title,
+          description: notToDos.description,
+        })
+        .from(notToDos)
+        .where(and(eq(notToDos.id, sourceItemId), eq(notToDos.userId, user.id)))
+    } else {
+      ;[item] = await db
+        .insert(notToDos)
+        .values({
+          userId: user.id,
+          title: challenge.title,
+          description: challenge.description || '',
+          mode: 'personal',
+          challengeId: null,
+        })
+        .returning({
+          id: notToDos.id,
+          title: notToDos.title,
+          description: notToDos.description,
+        })
+    }
 
     if (!item) {
       return NextResponse.json(

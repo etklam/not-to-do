@@ -293,6 +293,8 @@
     "shareAlreadyJoined": "You're already in this challenge.",
     "shareNoPersonalItems": "No active personal items. Create one first, then join.",
     "shareSelectItemHint": "Pick your personal item to join this challenge.",
+    "shareGuestHint": "No login required. Join directly and start checking in.",
+    "shareAutoCreateItem": "We'll create a starter item for you based on this challenge.",
     "shareJoinedSuccess": "Joined successfully. You're now tracking with the group.",
     "rankStreak": "Current Streak",
     "rankBest": "Best Record",
